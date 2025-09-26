@@ -12,9 +12,19 @@ export async function adminAuthMiddleware(request: NextRequest) {
       );
     }
     
-    // You can add additional authorization checks here
-    // For example, check if user has admin role, specific permissions, etc.
-    // For now, any authenticated user can access admin APIs
+    // Check if user is admin
+    const { prisma } = await import('@/lib/prisma');
+    const user = await prisma.user.findUnique({
+      where: { id: session.user?.id },
+      select: { isAdmin: true }
+    });
+    
+    if (!user?.isAdmin) {
+      return NextResponse.json(
+        { error: 'Forbidden - Admin access required' },
+        { status: 403 }
+      );
+    }
     
     return null; // Allow the request to continue
   } catch (error) {

@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
     id: user.id,
     gender: user.gender,
     interests,
+    isAdmin: user.isAdmin,
   });
 }
 

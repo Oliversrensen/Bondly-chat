@@ -41,9 +41,23 @@ export default function AdminPage() {
       return;
     }
     
-    // You can add additional authorization checks here
-    // For example, check if user is admin, has specific role, etc.
-    // For now, any authenticated user can access admin
+    // Check if user is admin
+    const checkAdminStatus = async () => {
+      try {
+        const response = await fetch('/api/me');
+        const userData = await response.json();
+        
+        if (!userData.isAdmin) {
+          router.push('/?error=admin_required');
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to check admin status:', error);
+        router.push('/?error=admin_check_failed');
+      }
+    };
+    
+    checkAdminStatus();
   }, [session, status, router]);
 
   const fetchHealthData = async () => {
