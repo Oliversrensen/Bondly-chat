@@ -18,6 +18,7 @@ interface HealthData {
 
 interface UsageStats {
   activeConnections: number;
+  activeUsers: number;
   messagesPerMinute: number;
   averageResponseTime: number;
   errorRate: number;
@@ -202,10 +203,14 @@ export default function AdminPage() {
 
             {usageStats ? (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-dark-800/50 rounded-xl">
                     <div className="text-2xl font-bold text-primary-400">{usageStats.activeConnections}</div>
-                    <div className="text-sm text-dark-400">Active Connections</div>
+                    <div className="text-sm text-dark-400">Connections</div>
+                  </div>
+                  <div className="text-center p-4 bg-dark-800/50 rounded-xl">
+                    <div className="text-2xl font-bold text-accent-400">{usageStats.activeUsers}</div>
+                    <div className="text-sm text-dark-400">Active Users</div>
                   </div>
                   <div className="text-center p-4 bg-dark-800/50 rounded-xl">
                     <div className="text-2xl font-bold text-secondary-400">{usageStats.messagesPerMinute}</div>

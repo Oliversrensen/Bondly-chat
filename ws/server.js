@@ -10,29 +10,48 @@ const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 let messageCount = 0;
 let errorCount = 0;
 let connectionCount = 0;
+let responseTimes = [];
 
 // Track metrics every minute
 setInterval(async () => {
   try {
+    // Get actual active connections from Redis sets
+    const actualActiveConnections = await redis.scard('active_connections') || 0;
+    const actualActiveUsers = await redis.scard('active_users') || 0;
+    
+    // Calculate average response time
+    const avgResponseTime = responseTimes.length > 0 
+      ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length)
+      : 0;
+    
+    // Store metrics
     await redis.set('messages_this_minute', messageCount);
     await redis.set('total_errors', errorCount);
-    await redis.set('active_connections', connectionCount);
-    await redis.set('avg_response_time', '50'); // Placeholder - implement actual tracking
+    await redis.set('active_connections', actualActiveConnections);
+    await redis.set('active_users', actualActiveUsers);
+    await redis.set('avg_response_time', avgResponseTime);
     await redis.set('websocket_last_heartbeat', new Date().toISOString());
     
-    // Reset minute counter
-    messageCount = 0;
+    // Track total requests for error rate calculation
+    const totalRequests = await redis.get('total_requests') || '0';
+    await redis.set('total_requests', parseInt(totalRequests) + messageCount);
     
     // Track recent activity
     await redis.lpush('recent_activity', JSON.stringify({
       timestamp: new Date().toISOString(),
-      connections: connectionCount,
+      connections: actualActiveConnections,
+      users: actualActiveUsers,
       messages: messageCount,
       errors: errorCount
     }));
     
     // Keep only last 100 activities
     await redis.ltrim('recent_activity', 0, 99);
+    
+    console.log(`📊 Metrics: ${actualActiveConnections} connections, ${actualActiveUsers} users, ${messageCount} msgs/min`);
+    
+    // Reset minute counter
+    messageCount = 0;
   } catch (err) {
     console.error('Metrics tracking error:', err);
   }
@@ -191,6 +210,8 @@ io.on("connection", (socket) => {
   socket.on("message", async ({ roomId, text, userId }) => {
     if (!roomId || !text) return;
 
+    const startTime = Date.now();
+
     // --- Moderation ---
     if (await isRateLimited(userId)) {
       console.log("Rate limit hit for", userId);
@@ -237,6 +258,15 @@ io.on("connection", (socket) => {
         
         // Track message count
         messageCount++;
+        
+        // Track response time
+        const responseTime = Date.now() - startTime;
+        responseTimes.push(responseTime);
+        
+        // Keep only last 100 response times
+        if (responseTimes.length > 100) {
+          responseTimes = responseTimes.slice(-100);
+        }
   });
 
   // Typing events
