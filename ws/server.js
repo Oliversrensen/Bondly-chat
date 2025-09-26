@@ -43,6 +43,33 @@ prisma.$connect()
   .then(() => console.log("✅ Database connected successfully"))
   .catch((err) => console.error("❌ Database connection failed:", err));
 
+// Clean up Redis keys on startup to avoid type conflicts
+async function cleanupRedisKeys() {
+  try {
+    console.log("🧹 Cleaning up Redis keys...");
+    
+    // Check and clean active tracking keys
+    const userType = await redis.type('active_users');
+    const connType = await redis.type('active_connections');
+    
+    if (userType !== 'set' && userType !== 'none') {
+      console.log("🗑️ Deleting active_users (wrong type)");
+      await redis.del('active_users');
+    }
+    if (connType !== 'set' && connType !== 'none') {
+      console.log("🗑️ Deleting active_connections (wrong type)");
+      await redis.del('active_connections');
+    }
+    
+    console.log("✅ Redis cleanup completed");
+  } catch (err) {
+    console.error("❌ Redis cleanup failed:", err);
+  }
+}
+
+// Run cleanup on startup
+cleanupRedisKeys();
+
 const httpServer = createServer((req, res) => {
   // Health check endpoint
   if (req.url === '/health' || req.url === '/') {
@@ -121,14 +148,37 @@ io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
   connectionCount++;
   
-  socket.on("identify", ({ userId }) => {
+  socket.on("identify", async ({ userId }) => {
     socketUsers.set(socket.id, userId);
     console.log("Identify", socket.id, "->", userId);
     
-    // Track active user
+    // Track active user with proper error handling
     if (userId) {
-      redis.sadd('active_users', userId);
-      redis.sadd('active_connections', socket.id);
+      try {
+        // Check if keys exist and are the right type, if not, delete them
+        const userType = await redis.type('active_users');
+        const connType = await redis.type('active_connections');
+        
+        if (userType !== 'set') {
+          await redis.del('active_users');
+        }
+        if (connType !== 'set') {
+          await redis.del('active_connections');
+        }
+        
+        await redis.sadd('active_users', userId);
+        await redis.sadd('active_connections', socket.id);
+      } catch (err) {
+        console.error("Error tracking active user:", err);
+        // If there's still an error, try to clear and recreate
+        try {
+          await redis.del('active_users', 'active_connections');
+          await redis.sadd('active_users', userId);
+          await redis.sadd('active_connections', socket.id);
+        } catch (retryErr) {
+          console.error("Retry failed:", retryErr);
+        }
+      }
     }
   });
 
@@ -217,9 +267,13 @@ io.on("connection", (socket) => {
           await cleanupUser(uid);
           socketUsers.delete(socket.id);
           
-          // Remove from active tracking
-          redis.srem('active_users', uid);
-          redis.srem('active_connections', socket.id);
+          // Remove from active tracking with error handling
+          try {
+            await redis.srem('active_users', uid);
+            await redis.srem('active_connections', socket.id);
+          } catch (err) {
+            console.error("Error removing from active tracking:", err);
+          }
         }
         connectionCount--;
         console.log("Socket disconnected:", socket.id);
