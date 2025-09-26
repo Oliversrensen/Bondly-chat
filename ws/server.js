@@ -6,6 +6,38 @@ const { Redis } = require("ioredis");
 const prisma = new PrismaClient();
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
+// Metrics tracking
+let messageCount = 0;
+let errorCount = 0;
+let connectionCount = 0;
+
+// Track metrics every minute
+setInterval(async () => {
+  try {
+    await redis.set('messages_this_minute', messageCount);
+    await redis.set('total_errors', errorCount);
+    await redis.set('active_connections', connectionCount);
+    await redis.set('avg_response_time', '50'); // Placeholder - implement actual tracking
+    await redis.set('websocket_last_heartbeat', new Date().toISOString());
+    
+    // Reset minute counter
+    messageCount = 0;
+    
+    // Track recent activity
+    await redis.lpush('recent_activity', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      connections: connectionCount,
+      messages: messageCount,
+      errors: errorCount
+    }));
+    
+    // Keep only last 100 activities
+    await redis.ltrim('recent_activity', 0, 99);
+  } catch (err) {
+    console.error('Metrics tracking error:', err);
+  }
+}, 60000);
+
 // Test database connection
 prisma.$connect()
   .then(() => console.log("✅ Database connected successfully"))
@@ -87,10 +119,17 @@ async function isRateLimited(uid) {
 // --- Socket.io handlers ---
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
-
+  connectionCount++;
+  
   socket.on("identify", ({ userId }) => {
     socketUsers.set(socket.id, userId);
     console.log("Identify", socket.id, "->", userId);
+    
+    // Track active user
+    if (userId) {
+      redis.sadd('active_users', userId);
+      redis.sadd('active_connections', socket.id);
+    }
   });
 
   socket.on("join_room", ({ roomId }) => {
@@ -134,16 +173,20 @@ io.on("connection", (socket) => {
       } else {
         console.log("⚠️ No userId provided");
       }
-    } catch (err) {
-      console.error("❌ Failed to fetch user info:", err);
-    }
+        } catch (err) {
+          console.error("❌ Failed to fetch user info:", err);
+          errorCount++;
+        }
 
-    io.to(roomId).emit("message", {
-      text: cleanText,
-      authorId: userId || "anon",
-      sillyName,
-      at: Date.now(),
-    });
+        io.to(roomId).emit("message", {
+          text: cleanText,
+          authorId: userId || "anon",
+          sillyName,
+          at: Date.now(),
+        });
+        
+        // Track message count
+        messageCount++;
   });
 
   // Typing events
@@ -167,15 +210,20 @@ io.on("connection", (socket) => {
     console.log(`User left room ${roomId}`);
   });
 
-  // Disconnect cleanup
-  socket.on("disconnect", async () => {
-    const uid = socketUsers.get(socket.id);
-    if (uid) {
-      await cleanupUser(uid);
-      socketUsers.delete(socket.id);
-    }
-    console.log("Socket disconnected:", socket.id);
-  });
+      // Disconnect cleanup
+      socket.on("disconnect", async () => {
+        const uid = socketUsers.get(socket.id);
+        if (uid) {
+          await cleanupUser(uid);
+          socketUsers.delete(socket.id);
+          
+          // Remove from active tracking
+          redis.srem('active_users', uid);
+          redis.srem('active_connections', socket.id);
+        }
+        connectionCount--;
+        console.log("Socket disconnected:", socket.id);
+      });
 });
 
 const PORT = process.env.PORT || 8080;
