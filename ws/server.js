@@ -12,6 +12,11 @@ let errorCount = 0;
 let connectionCount = 0;
 let responseTimes = [];
 
+// Message batching for database efficiency
+let messageBuffer = [];
+const BATCH_SIZE = 10; // Save every 10 messages
+const BATCH_TIMEOUT = 5000; // Or every 5 seconds, whichever comes first
+
 // Track metrics every minute
 setInterval(async () => {
   try {
@@ -88,6 +93,62 @@ async function cleanupRedisKeys() {
 
 // Run cleanup on startup
 cleanupRedisKeys();
+
+// Function to save messages in batches
+async function saveMessageBatch() {
+  if (messageBuffer.length === 0) return;
+  
+  try {
+    console.log(`💾 Saving batch of ${messageBuffer.length} messages to database`);
+    
+    // Group messages by roomId to handle matches efficiently
+    const messagesByRoom = {};
+    for (const msg of messageBuffer) {
+      if (!messagesByRoom[msg.roomId]) {
+        messagesByRoom[msg.roomId] = [];
+      }
+      messagesByRoom[msg.roomId].push(msg);
+    }
+    
+    // Process each room's messages
+    for (const [roomId, messages] of Object.entries(messagesByRoom)) {
+      // Find or create match for this room
+      let match = await prisma.match.findFirst({
+        where: { roomId: roomId }
+      });
+      
+      if (!match) {
+        match = await prisma.match.create({
+          data: {
+            roomId: roomId,
+            initiatorId: messages[0].userId || "anon",
+            joinerId: messages[0].userId || "anon",
+            status: "ACTIVE"
+          }
+        });
+      }
+      
+      // Create all messages for this room in one batch
+      await prisma.message.createMany({
+        data: messages.map(msg => ({
+          text: msg.text,
+          authorId: msg.userId || "anon",
+          matchId: match.id
+        }))
+      });
+    }
+    
+    console.log(`✅ Successfully saved ${messageBuffer.length} messages`);
+    messageBuffer = []; // Clear buffer
+  } catch (error) {
+    console.error("❌ Failed to save message batch:", error);
+    errorCount++;
+    // Keep messages in buffer for retry
+  }
+}
+
+// Set up batch processing
+setInterval(saveMessageBatch, BATCH_TIMEOUT);
 
 const httpServer = createServer((req, res) => {
   // Health check endpoint
@@ -270,38 +331,17 @@ io.on("connection", (socket) => {
           errorCount++;
         }
 
-        // Save message to database
-        try {
-          // First, find or create the match for this room
-          let match = await prisma.match.findFirst({
-            where: { roomId: roomId }
-          });
-          
-          if (!match) {
-            // Create a new match record for this room
-            match = await prisma.match.create({
-              data: {
-                roomId: roomId,
-                initiatorId: userId || "anon",
-                joinerId: userId || "anon", // This will be updated when second user joins
-                status: "ACTIVE"
-              }
-            });
-          }
-          
-          // Save the message to database
-          await prisma.message.create({
-            data: {
-              text: cleanText,
-              authorId: userId || "anon",
-              matchId: match.id
-            }
-          });
-          
-          console.log("💾 Message saved to database");
-        } catch (dbError) {
-          console.error("❌ Failed to save message to database:", dbError);
-          errorCount++;
+        // Add message to buffer for batch processing
+        messageBuffer.push({
+          roomId: roomId,
+          text: cleanText,
+          userId: userId || "anon",
+          timestamp: Date.now()
+        });
+        
+        // Trigger batch save if buffer is full
+        if (messageBuffer.length >= BATCH_SIZE) {
+          saveMessageBatch();
         }
 
         io.to(roomId).emit("message", {
@@ -368,7 +408,21 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 8080;
 const HOST = process.env.HOST || "0.0.0.0";
 
+// Graceful shutdown handler
+process.on('SIGTERM', async () => {
+  console.log('🛑 Received SIGTERM, saving remaining messages...');
+  await saveMessageBatch();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('🛑 Received SIGINT, saving remaining messages...');
+  await saveMessageBatch();
+  process.exit(0);
+});
+
 httpServer.listen(PORT, HOST, () => {
   console.log(`🚀 WebSocket server running on ${HOST}:${PORT}`);
   console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`💾 Message batching: ${BATCH_SIZE} messages or ${BATCH_TIMEOUT}ms`);
 });
