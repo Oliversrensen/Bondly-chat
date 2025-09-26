@@ -1,0 +1,146 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  Male
+  Female
+  Undisclosed
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  
+  sillyName String?
+  isPro     Boolean  @default(false)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  gender           Gender           @default(Undisclosed)
+  interests        InterestOnUser[]
+  blocksInitiated  Block[]          @relation("blocker")
+  blocksReceived   Block[]          @relation("blocked")
+  reports          Report[]         @relation("reportsByUser")
+  stripeCustomerId String?          @unique
+  subscriptions    Subscription[]
+  messages         Message[]
+  matchesInitiated Match[]          @relation("initiator")
+  matchesJoined    Match[]          @relation("joiner")
+  Account          Account[]
+  Session          Session[]
+}
+
+model Interest {
+  id    Int              @id @default(autoincrement())
+  name  String           @unique
+  users InterestOnUser[]
+}
+
+model InterestOnUser {
+  userId     String
+  interestId Int
+  weight     Int      @default(1)
+  user       User     @relation(fields: [userId], references: [id])
+  interest   Interest @relation(fields: [interestId], references: [id])
+
+  @@id([userId, interestId])
+}
+
+model Match {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  endedAt     DateTime?
+  initiator   User      @relation("initiator", fields: [initiatorId], references: [id])
+  initiatorId String
+  joiner      User      @relation("joiner", fields: [joinerId], references: [id])
+  joinerId    String
+  mode        String
+  roomId      String    @unique
+  messages    Message[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  matchId   String
+  authorId  String
+  text      String
+  match     Match    @relation(fields: [matchId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Subscription {
+  id               String   @id @default(cuid())
+  userId           String
+  status           String
+  priceId          String
+  currentPeriodEnd DateTime
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  // Two relations, each with a name that matches the User side:
+  blocker User @relation("blocker", fields: [blockerId], references: [id])
+  blocked User @relation("blocked", fields: [blockedId], references: [id])
+}
+
+model Report {
+  id             String   @id @default(cuid())
+  reporterId     String
+  reportedUserId String
+  reason         String
+  createdAt      DateTime @default(now())
+  reporter       User     @relation("reportsByUser", fields: [reporterId], references: [id])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+}
