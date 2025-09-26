@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface HealthData {
   status: string;
@@ -23,10 +25,26 @@ interface UsageStats {
 }
 
 export default function AdminPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [healthData, setHealthData] = useState<HealthData | null>(null);
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Check if user is authenticated and authorized
+  useEffect(() => {
+    if (status === 'loading') return; // Still loading
+    
+    if (!session) {
+      router.push('/auth?callbackUrl=/admin');
+      return;
+    }
+    
+    // You can add additional authorization checks here
+    // For example, check if user is admin, has specific role, etc.
+    // For now, any authenticated user can access admin
+  }, [session, status, router]);
 
   const fetchHealthData = async () => {
     try {
@@ -62,7 +80,8 @@ export default function AdminPage() {
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) {
+  // Show loading while checking authentication
+  if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800 flex items-center justify-center">
         <div className="text-center">
@@ -71,7 +90,26 @@ export default function AdminPage() {
             <span></span>
             <span></span>
           </div>
-          <p className="text-dark-300">Loading monitoring data...</p>
+          <p className="text-dark-300">
+            {status === 'loading' ? 'Checking authentication...' : 'Loading monitoring data...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated, this will redirect, but show a message briefly
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <p className="text-red-400 font-medium mb-2">Access Denied</p>
+          <p className="text-dark-300">Redirecting to login...</p>
         </div>
       </div>
     );
@@ -82,6 +120,25 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex items-center gap-3">
+              <img src="/logo.svg" alt="Bondly logo" className="h-8 w-8" />
+              <span className="text-lg font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
+                Bondly Admin
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-dark-400">
+                Logged in as: {session?.user?.name || session?.user?.email}
+              </span>
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="btn btn-ghost text-sm px-3 py-2"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
           <h1 className="text-4xl font-bold mb-2">
             <span className="bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
               System Monitor

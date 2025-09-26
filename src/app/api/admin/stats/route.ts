@@ -1,9 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { Redis } from 'ioredis';
+import { adminAuthMiddleware } from '../middleware';
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Check authentication
+  const authResponse = await adminAuthMiddleware(request);
+  if (authResponse) return authResponse;
+
   try {
     // Get active WebSocket connections (this would need to be tracked by your WebSocket server)
     const activeConnections = await redis.scard('active_connections') || 0;
