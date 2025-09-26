@@ -8,6 +8,14 @@
 -- DropForeignKey
 ALTER TABLE "Message" DROP CONSTRAINT "Message_matchId_fkey";
 
--- AlterTable
-ALTER TABLE "Message" DROP COLUMN "matchId",
-ADD COLUMN     "roomId" TEXT NOT NULL;
+-- Add roomId column with default value first
+ALTER TABLE "Message" ADD COLUMN "roomId" TEXT DEFAULT 'legacy';
+
+-- Update existing messages to have a roomId (use a default value)
+UPDATE "Message" SET "roomId" = 'legacy-' || "id" WHERE "roomId" = 'legacy';
+
+-- Now make roomId NOT NULL
+ALTER TABLE "Message" ALTER COLUMN "roomId" SET NOT NULL;
+
+-- Drop the matchId column
+ALTER TABLE "Message" DROP COLUMN "matchId";
