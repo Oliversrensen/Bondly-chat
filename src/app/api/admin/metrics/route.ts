@@ -27,7 +27,7 @@ export async function GET() {
       }),
       prisma.message.count({
         where: {
-          at: {
+          createdAt: {
             gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
           }
         }
