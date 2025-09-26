@@ -10,9 +10,9 @@ export async function GET(request: NextRequest) {
   if (authResponse) return authResponse;
 
   try {
-    // Get active WebSocket connections from Redis sets
-    const activeConnections = await redis.scard('active_connections') || 0;
-    const activeUsers = await redis.scard('active_users') || 0;
+        // Get active WebSocket connections from Redis metrics
+        const activeConnections = parseInt(await redis.get('metrics_active_connections') || '0');
+        const activeUsers = parseInt(await redis.get('metrics_active_users') || '0');
     
     // Get messages per minute (tracked in Redis)
     const messagesThisMinute = await redis.get('messages_this_minute') || '0';

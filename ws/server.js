@@ -20,20 +20,46 @@ const BATCH_TIMEOUT = 5000; // Or every 5 seconds, whichever comes first
 // Track metrics every minute
 setInterval(async () => {
   try {
-    // Get actual active connections from Redis sets
-    const actualActiveConnections = await redis.scard('active_connections') || 0;
-    const actualActiveUsers = await redis.scard('active_users') || 0;
+    // Get actual active connections from Redis sets with error handling
+    let actualActiveConnections = 0;
+    let actualActiveUsers = 0;
+    
+    try {
+      const connType = await redis.type('active_connections');
+      if (connType === 'set') {
+        actualActiveConnections = await redis.scard('active_connections') || 0;
+      } else {
+        console.log("⚠️ active_connections is not a set, deleting and recreating");
+        await redis.del('active_connections');
+      }
+    } catch (err) {
+      console.error("Error getting active connections:", err);
+      await redis.del('active_connections');
+    }
+    
+    try {
+      const userType = await redis.type('active_users');
+      if (userType === 'set') {
+        actualActiveUsers = await redis.scard('active_users') || 0;
+      } else {
+        console.log("⚠️ active_users is not a set, deleting and recreating");
+        await redis.del('active_users');
+      }
+    } catch (err) {
+      console.error("Error getting active users:", err);
+      await redis.del('active_users');
+    }
     
     // Calculate average response time
     const avgResponseTime = responseTimes.length > 0 
       ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length)
       : 0;
     
-    // Store metrics
+    // Store metrics (use different keys for metrics to avoid conflicts)
     await redis.set('messages_this_minute', messageCount);
     await redis.set('total_errors', errorCount);
-    await redis.set('active_connections', actualActiveConnections);
-    await redis.set('active_users', actualActiveUsers);
+    await redis.set('metrics_active_connections', actualActiveConnections);
+    await redis.set('metrics_active_users', actualActiveUsers);
     await redis.set('avg_response_time', avgResponseTime);
     await redis.set('websocket_last_heartbeat', new Date().toISOString());
     
