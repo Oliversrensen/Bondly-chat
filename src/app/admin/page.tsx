@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 
 interface HealthData {
   status: string;
@@ -25,40 +24,13 @@ interface UsageStats {
 }
 
 export default function AdminPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const { data: session } = useSession();
   const [healthData, setHealthData] = useState<HealthData | null>(null);
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if user is authenticated and authorized
-  useEffect(() => {
-    if (status === 'loading') return; // Still loading
-    
-    if (!session) {
-      router.push('/auth?callbackUrl=/admin');
-      return;
-    }
-    
-    // Check if user is admin
-    const checkAdminStatus = async () => {
-      try {
-        const response = await fetch('/api/me');
-        const userData = await response.json();
-        
-        if (!userData.isAdmin) {
-          router.push('/?error=admin_required');
-          return;
-        }
-      } catch (error) {
-        console.error('Failed to check admin status:', error);
-        router.push('/?error=admin_check_failed');
-      }
-    };
-    
-    checkAdminStatus();
-  }, [session, status, router]);
+  // No need for client-side auth checks - handled by layout
 
   const fetchHealthData = async () => {
     try {
@@ -94,8 +66,8 @@ export default function AdminPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Show loading while checking authentication
-  if (status === 'loading' || loading) {
+  // Show loading while fetching data
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800 flex items-center justify-center">
         <div className="text-center">
@@ -104,26 +76,7 @@ export default function AdminPage() {
             <span></span>
             <span></span>
           </div>
-          <p className="text-dark-300">
-            {status === 'loading' ? 'Checking authentication...' : 'Loading monitoring data...'}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // If not authenticated, this will redirect, but show a message briefly
-  if (!session) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
-          <p className="text-red-400 font-medium mb-2">Access Denied</p>
-          <p className="text-dark-300">Redirecting to login...</p>
+          <p className="text-dark-300">Loading monitoring data...</p>
         </div>
       </div>
     );
