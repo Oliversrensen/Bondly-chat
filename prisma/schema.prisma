@@ -69,16 +69,14 @@ model Match {
   joinerId    String
   mode        String
   roomId      String    @unique
-  messages    Message[]
 }
 
 model Message {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-  matchId   String
   authorId  String
   text      String
-  match     Match    @relation(fields: [matchId], references: [id])
+  roomId    String   // Store room ID for grouping messages
   author    User     @relation(fields: [authorId], references: [id])
 }
 

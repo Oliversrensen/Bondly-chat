@@ -101,42 +101,14 @@ async function saveMessageBatch() {
   try {
     console.log(`💾 Saving batch of ${messageBuffer.length} messages to database`);
     
-    // Group messages by roomId to handle matches efficiently
-    const messagesByRoom = {};
-    for (const msg of messageBuffer) {
-      if (!messagesByRoom[msg.roomId]) {
-        messagesByRoom[msg.roomId] = [];
-      }
-      messagesByRoom[msg.roomId].push(msg);
-    }
-    
-    // Process each room's messages
-    for (const [roomId, messages] of Object.entries(messagesByRoom)) {
-      // Find or create match for this room
-      let match = await prisma.match.findFirst({
-        where: { roomId: roomId }
-      });
-      
-      if (!match) {
-        match = await prisma.match.create({
-          data: {
-            roomId: roomId,
-            initiatorId: messages[0].userId || "anon",
-            joinerId: messages[0].userId || "anon",
-            status: "ACTIVE"
-          }
-        });
-      }
-      
-      // Create all messages for this room in one batch
-      await prisma.message.createMany({
-        data: messages.map(msg => ({
-          text: msg.text,
-          authorId: msg.userId || "anon",
-          matchId: match.id
-        }))
-      });
-    }
+    // Create all messages in one batch - much simpler now!
+    await prisma.message.createMany({
+      data: messageBuffer.map(msg => ({
+        text: msg.text,
+        authorId: msg.userId || "anon",
+        roomId: msg.roomId
+      }))
+    });
     
     console.log(`✅ Successfully saved ${messageBuffer.length} messages`);
     messageBuffer = []; // Clear buffer
@@ -262,31 +234,10 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("join_room", async ({ roomId }) => {
+  socket.on("join_room", ({ roomId }) => {
     if (!roomId) return;
     socket.join(roomId);
     console.log(`Socket ${socket.id} joined room ${roomId}`);
-    
-    // Update match with second user if needed
-    try {
-      const userId = socketUsers.get(socket.id);
-      if (userId) {
-        const match = await prisma.match.findFirst({
-          where: { roomId: roomId }
-        });
-        
-        if (match && match.joinerId === match.initiatorId) {
-          // Update with the second user
-          await prisma.match.update({
-            where: { id: match.id },
-            data: { joinerId: userId }
-          });
-          console.log(`👥 Updated match with second user: ${userId}`);
-        }
-      }
-    } catch (err) {
-      console.error("Error updating match:", err);
-    }
   });
 
   socket.on("message", async ({ roomId, text, userId }) => {
