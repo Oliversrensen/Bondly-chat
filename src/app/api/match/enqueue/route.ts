@@ -91,7 +91,8 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      const [[, live]] = await redis.pipeline().exists(PRESENCE(other)).exec();
+      const result = await redis.pipeline().exists(PRESENCE(other)).exec();
+      const live = result?.[0]?.[1];
       if (live !== 1) {
         console.log("Candidate offline", other);
         continue;
@@ -167,7 +168,8 @@ export async function POST(req: NextRequest) {
 
       if (candidate === uid && !SELF_MATCH_DEV) continue;
 
-      const [[, live]] = await redis.pipeline().exists(PRESENCE(candidate)).exec();
+      const result = await redis.pipeline().exists(PRESENCE(candidate)).exec();
+      const live = result?.[0]?.[1];
       if (live !== 1) continue;
 
       // Candidate info from DB

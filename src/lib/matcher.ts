@@ -30,13 +30,13 @@ export async function pickBestByInterest(
   for (const id of pool) pipe.smembers(`user:interests:${id}`);
   const results = await pipe.exec();
 
-  const seeker = new Set<string>((results[0]?.[1] as string[]) || []);
+  const seeker = new Set<string>((results?.[0]?.[1] as string[]) || []);
   if (seeker.size === 0) return null;
 
   let best: { otherId: string; sim: Similarity } | null = null;
   for (let i = 0; i < pool.length; i++) {
     const otherId = pool[i];
-    const tags = new Set<string>((results[i + 1]?.[1] as string[]) || []);
+    const tags = new Set<string>((results?.[i + 1]?.[1] as string[]) || []);
     if (tags.size === 0) continue;
 
     let overlap = 0;

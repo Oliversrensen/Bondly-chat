@@ -28,8 +28,8 @@ export async function GET(req: NextRequest) {
 
   let partnerName = "Anonymous";
   if (match) {
-    if (match.initiatorId === uid) partnerName = match.joiner.sillyName;
-    else partnerName = match.initiator.sillyName;
+    if (match.initiatorId === uid) partnerName = match.joiner.sillyName || "Anonymous"; 
+    else partnerName = match.initiator.sillyName || "Anonymous";
   }
 
   return NextResponse.json({ roomId, partnerName });

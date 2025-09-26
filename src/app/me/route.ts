@@ -27,7 +27,6 @@ export async function GET(req: NextRequest) {
   const interests = user.interests.map((i) => i.interest.name);
   return NextResponse.json({
     id: user.id,
-    anonHandle: user.anonHandle,
     gender: user.gender,
     interests,
   });
@@ -47,7 +46,7 @@ export async function PATCH(req: NextRequest) {
     await prisma.user.upsert({
       where: { id: uid },
       update: { gender: gender as any },
-      create: { id: uid, anonHandle: `User${uid.slice(0, 6)}`, gender: gender as any },
+      create: { id: uid, gender: gender as any },
     });
   }
 
