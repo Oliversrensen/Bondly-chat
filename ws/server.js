@@ -11,7 +11,18 @@ prisma.$connect()
   .then(() => console.log("✅ Database connected successfully"))
   .catch((err) => console.error("❌ Database connection failed:", err));
 
-const httpServer = createServer();
+const httpServer = createServer((req, res) => {
+  // Health check endpoint
+  if (req.url === '/health' || req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', service: 'websocket-server' }));
+    return;
+  }
+  
+  res.writeHead(404, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ error: 'Not found' }));
+});
+
 const io = new Server(httpServer, { cors: { origin: "*" } });
 
 // Track socket → userId

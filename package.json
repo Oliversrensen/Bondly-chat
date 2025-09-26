@@ -6,9 +6,10 @@
     "dev": "next dev",
     "build": "next build && next export || true",
     "start": "next start",
+    "ws": "node ws/server.js",
+    "ws:dev": "node ws/server.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "ws:dev": "node ws/server.js"
+    "prisma:migrate": "prisma migrate dev"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: bondly-websocket
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run ws
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    healthCheckPath: /
