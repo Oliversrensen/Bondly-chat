@@ -201,10 +201,31 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("join_room", ({ roomId }) => {
+  socket.on("join_room", async ({ roomId }) => {
     if (!roomId) return;
     socket.join(roomId);
     console.log(`Socket ${socket.id} joined room ${roomId}`);
+    
+    // Update match with second user if needed
+    try {
+      const userId = socketUsers.get(socket.id);
+      if (userId) {
+        const match = await prisma.match.findFirst({
+          where: { roomId: roomId }
+        });
+        
+        if (match && match.joinerId === match.initiatorId) {
+          // Update with the second user
+          await prisma.match.update({
+            where: { id: match.id },
+            data: { joinerId: userId }
+          });
+          console.log(`👥 Updated match with second user: ${userId}`);
+        }
+      }
+    } catch (err) {
+      console.error("Error updating match:", err);
+    }
   });
 
   socket.on("message", async ({ roomId, text, userId }) => {
@@ -246,6 +267,40 @@ io.on("connection", (socket) => {
       }
         } catch (err) {
           console.error("❌ Failed to fetch user info:", err);
+          errorCount++;
+        }
+
+        // Save message to database
+        try {
+          // First, find or create the match for this room
+          let match = await prisma.match.findFirst({
+            where: { roomId: roomId }
+          });
+          
+          if (!match) {
+            // Create a new match record for this room
+            match = await prisma.match.create({
+              data: {
+                roomId: roomId,
+                initiatorId: userId || "anon",
+                joinerId: userId || "anon", // This will be updated when second user joins
+                status: "ACTIVE"
+              }
+            });
+          }
+          
+          // Save the message to database
+          await prisma.message.create({
+            data: {
+              text: cleanText,
+              authorId: userId || "anon",
+              matchId: match.id
+            }
+          });
+          
+          console.log("💾 Message saved to database");
+        } catch (dbError) {
+          console.error("❌ Failed to save message to database:", dbError);
           errorCount++;
         }
 
