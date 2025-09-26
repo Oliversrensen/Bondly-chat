@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && next export || true",
+    "build": "next build",
     "start": "next start",
     "ws": "node ws/server.js",
     "ws:dev": "node ws/server.js",
