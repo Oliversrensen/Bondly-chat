@@ -9,8 +9,20 @@ const prisma = new PrismaClient();
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
 // Test the Prisma client with a simple query to ensure it's working
-prisma.$connect().then(() => {
+prisma.$connect().then(async () => {
   console.log("✅ Prisma client connected successfully");
+  
+  // Debug: Check what the Prisma client thinks the Message model looks like
+  try {
+    const messageFields = Object.keys(prisma.message.fields);
+    console.log("📋 Message model fields:", messageFields);
+    
+    // Try a simple query to see what happens
+    const messageCount = await prisma.message.count();
+    console.log("📊 Total messages in database:", messageCount);
+  } catch (err) {
+    console.error("❌ Error checking Message model:", err);
+  }
 }).catch((err) => {
   console.error("❌ Prisma client connection failed:", err);
 });
@@ -123,19 +135,26 @@ async function saveMessageBatch() {
   try {
     console.log(`💾 Saving batch of ${messageBuffer.length} messages to database`);
     
+    // Debug: Log the data structure we're trying to save
+    const messageData = messageBuffer.map(msg => ({
+      text: msg.text,
+      authorId: msg.userId || "anon",
+      roomId: msg.roomId
+    }));
+    
+    console.log("📝 Message data structure:", JSON.stringify(messageData, null, 2));
+    
     // Create all messages in one batch - much simpler now!
     await prisma.message.createMany({
-      data: messageBuffer.map(msg => ({
-        text: msg.text,
-        authorId: msg.userId || "anon",
-        roomId: msg.roomId
-      }))
+      data: messageData
     });
     
     console.log(`✅ Successfully saved ${messageBuffer.length} messages`);
     messageBuffer = []; // Clear buffer
   } catch (error) {
     console.error("❌ Failed to save message batch:", error);
+    console.error("❌ Error details:", error.message);
+    console.error("❌ Error code:", error.code);
     errorCount++;
     // Keep messages in buffer for retry
   }

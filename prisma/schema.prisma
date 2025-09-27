@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,38 +7,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Gender {
-  Male
-  Female
-  Undisclosed
-}
-
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  
-  sillyName String?
-  isPro     Boolean  @default(false)
-  isAdmin   Boolean  @default(false)
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
+  id               String           @id @default(cuid())
+  email            String?          @unique
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   gender           Gender           @default(Undisclosed)
-  interests        InterestOnUser[]
-  blocksInitiated  Block[]          @relation("blocker")
-  blocksReceived   Block[]          @relation("blocked")
-  reports          Report[]         @relation("reportsByUser")
   stripeCustomerId String?          @unique
-  subscriptions    Subscription[]
-  messages         Message[]
+  image            String?
+  name             String?
+  isPro            Boolean          @default(false)
+  sillyName        String?
+  emailVerified    DateTime?
+  isAdmin          Boolean          @default(false)
+  Account          Account[]
+  blocksReceived   Block[]          @relation("blocked")
+  blocksInitiated  Block[]          @relation("blocker")
+  interests        InterestOnUser[]
   matchesInitiated Match[]          @relation("initiator")
   matchesJoined    Match[]          @relation("joiner")
-  Account          Account[]
+  messages         Message[]
+  reports          Report[]         @relation("reportsByUser")
   Session          Session[]
+  subscriptions    Subscription[]
 }
 
 model Interest {
@@ -53,8 +42,8 @@ model InterestOnUser {
   userId     String
   interestId Int
   weight     Int      @default(1)
-  user       User     @relation(fields: [userId], references: [id])
   interest   Interest @relation(fields: [interestId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
   @@id([userId, interestId])
 }
@@ -63,12 +52,12 @@ model Match {
   id          String    @id @default(cuid())
   createdAt   DateTime  @default(now())
   endedAt     DateTime?
-  initiator   User      @relation("initiator", fields: [initiatorId], references: [id])
   initiatorId String
-  joiner      User      @relation("joiner", fields: [joinerId], references: [id])
   joinerId    String
   mode        String
   roomId      String    @unique
+  initiator   User      @relation("initiator", fields: [initiatorId], references: [id])
+  joiner      User      @relation("joiner", fields: [joinerId], references: [id])
 }
 
 model Message {
@@ -76,7 +65,7 @@ model Message {
   createdAt DateTime @default(now())
   authorId  String
   text      String
-  roomId    String   // Store room ID for grouping messages
+  roomId    String
   author    User     @relation(fields: [authorId], references: [id])
 }
 
@@ -94,10 +83,8 @@ model Block {
   blockerId String
   blockedId String
   createdAt DateTime @default(now())
-
-  // Two relations, each with a name that matches the User side:
-  blocker User @relation("blocker", fields: [blockerId], references: [id])
-  blocked User @relation("blocked", fields: [blockedId], references: [id])
+  blocked   User     @relation("blocked", fields: [blockedId], references: [id])
+  blocker   User     @relation("blocker", fields: [blockerId], references: [id])
 }
 
 model Report {
@@ -115,15 +102,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -142,4 +128,10 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+}
+
+enum Gender {
+  Male
+  Female
+  Undisclosed
 }
