@@ -133,10 +133,8 @@ export async function POST(req: NextRequest) {
     }
 
     // No match found → enqueue self
-    console.log("📝 No match found, enqueuing user:", uid);
     await redis.rpush("queue:random", uid);
     await redis.setex(`queue:random:user:${uid}`, QUEUE_TTL, "1");
-    console.log("✅ User enqueued successfully");
     return NextResponse.json({ queued: true });
   }
 

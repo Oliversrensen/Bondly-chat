@@ -38,9 +38,14 @@ let messageBuffer = [];
 const BATCH_SIZE = 10; // Save every 10 messages
 const BATCH_TIMEOUT = 5000; // Or every 5 seconds, whichever comes first
 
-// Track metrics every minute
+// Track metrics every 5 minutes (much less frequent)
 setInterval(async () => {
   try {
+    // Only update metrics if there's actual activity
+    if (messageCount === 0 && errorCount === 0) {
+      return; // Skip if no activity
+    }
+    
     // Calculate average response time
     const avgResponseTime = responseTimes.length > 0 
       ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length)
@@ -87,14 +92,16 @@ setInterval(async () => {
     // Execute all writes in one batch
     await writePipeline.exec();
     
-    console.log(`📊 Metrics: ${actualActiveConnections} connections, ${actualActiveUsers} users, ${messageCount} msgs/min`);
+    console.log(`📊 Metrics: ${actualActiveConnections} connections, ${actualActiveUsers} users, ${messageCount} msgs/5min`);
     
-    // Reset minute counter
+    // Reset counters
     messageCount = 0;
+    errorCount = 0;
+    responseTimes = [];
   } catch (err) {
     console.error('Metrics tracking error:', err);
   }
-}, 60000);
+}, 300000); // 5 minutes instead of 1 minute
 
 // Test database connection
 prisma.$connect()
@@ -133,31 +140,17 @@ async function saveMessageBatch() {
   if (messageBuffer.length === 0) return;
   
   try {
-    console.log(`💾 Saving batch of ${messageBuffer.length} messages to database`);
-    
-    // Debug: Log the data structure we're trying to save
-    const messageData = messageBuffer.map(msg => ({
-      text: msg.text,
-      authorId: msg.userId || "anon",
-      roomId: msg.roomId
-    }));
-    
-    console.log("📝 Message data structure:", JSON.stringify(messageData, null, 2));
-    
     // Use raw SQL to bypass Prisma client issues
-    for (const msg of messageData) {
+    for (const msg of messageBuffer) {
       await prisma.$executeRaw`
         INSERT INTO "Message" ("id", "createdAt", "authorId", "text", "roomId")
-        VALUES (${msg.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`}, ${new Date()}, ${msg.authorId}, ${msg.text}, ${msg.roomId})
+        VALUES (${msg.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`}, ${new Date()}, ${msg.userId || "anon"}, ${msg.text}, ${msg.roomId})
       `;
     }
     
-    console.log(`✅ Successfully saved ${messageBuffer.length} messages`);
     messageBuffer = []; // Clear buffer
   } catch (error) {
     console.error("❌ Failed to save message batch:", error);
-    console.error("❌ Error details:", error.message);
-    console.error("❌ Error code:", error.code);
     errorCount++;
     // Keep messages in buffer for retry
   }
@@ -285,26 +278,17 @@ io.on("connection", (socket) => {
     let sillyName = "Anonymous";
     try {
       if (userId) {
-        console.log("🔍 Fetching user info for userId:", userId);
         const user = await prisma.user.findUnique({
           where: { id: userId },
           select: { sillyName: true, name: true, isPro: true },
         });
 
-        console.log("👤 User found:", user);
-
         // Use sillyName if available, otherwise use name, otherwise "Anonymous"
         if (user?.sillyName && user.sillyName.trim() !== "") {
           sillyName = user.sillyName;
-          console.log("✅ Using sillyName:", sillyName);
         } else if (user?.name && user.name.trim() !== "") {
           sillyName = user.name;
-          console.log("✅ Using name:", sillyName);
-        } else {
-          console.log("⚠️ No display name found, using Anonymous");
         }
-      } else {
-        console.log("⚠️ No userId provided");
       }
         } catch (err) {
           console.error("❌ Failed to fetch user info:", err);
@@ -334,13 +318,15 @@ io.on("connection", (socket) => {
         // Track message count
         messageCount++;
         
-        // Track response time
+        // Track response time (only if it's significant)
         const responseTime = Date.now() - startTime;
-        responseTimes.push(responseTime);
-        
-        // Keep only last 100 response times
-        if (responseTimes.length > 100) {
-          responseTimes = responseTimes.slice(-100);
+        if (responseTime > 100) { // Only track slow responses
+          responseTimes.push(responseTime);
+          
+          // Keep only last 50 response times
+          if (responseTimes.length > 50) {
+            responseTimes = responseTimes.slice(-50);
+          }
         }
   });
 
