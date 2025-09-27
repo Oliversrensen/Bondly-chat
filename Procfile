@@ -1,1 +1,1 @@
-web: node ws/server.js
+web: prisma generate && node ws/server.js
