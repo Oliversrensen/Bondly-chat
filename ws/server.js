@@ -20,64 +20,51 @@ const BATCH_TIMEOUT = 5000; // Or every 5 seconds, whichever comes first
 // Track metrics every minute
 setInterval(async () => {
   try {
-    // Get actual active connections from Redis sets with error handling
-    let actualActiveConnections = 0;
-    let actualActiveUsers = 0;
-    
-    try {
-      const connType = await redis.type('active_connections');
-      if (connType === 'set') {
-        actualActiveConnections = await redis.scard('active_connections') || 0;
-      } else {
-        console.log("⚠️ active_connections is not a set, deleting and recreating");
-        await redis.del('active_connections');
-      }
-    } catch (err) {
-      console.error("Error getting active connections:", err);
-      await redis.del('active_connections');
-    }
-    
-    try {
-      const userType = await redis.type('active_users');
-      if (userType === 'set') {
-        actualActiveUsers = await redis.scard('active_users') || 0;
-      } else {
-        console.log("⚠️ active_users is not a set, deleting and recreating");
-        await redis.del('active_users');
-      }
-    } catch (err) {
-      console.error("Error getting active users:", err);
-      await redis.del('active_users');
-    }
-    
     // Calculate average response time
     const avgResponseTime = responseTimes.length > 0 
       ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length)
       : 0;
     
-    // Store metrics (use different keys for metrics to avoid conflicts)
-    await redis.set('messages_this_minute', messageCount);
-    await redis.set('total_errors', errorCount);
-    await redis.set('metrics_active_connections', actualActiveConnections);
-    await redis.set('metrics_active_users', actualActiveUsers);
-    await redis.set('avg_response_time', avgResponseTime);
-    await redis.set('websocket_last_heartbeat', new Date().toISOString());
+    // Use Redis pipeline to batch all operations (much cheaper!)
+    const pipeline = redis.pipeline();
     
-    // Track total requests for error rate calculation
-    const totalRequests = await redis.get('total_requests') || '0';
-    await redis.set('total_requests', parseInt(totalRequests) + messageCount);
+    // Get current counts from sets (with error handling)
+    pipeline.scard('active_connections');
+    pipeline.scard('active_users');
+    pipeline.get('total_requests');
     
-    // Track recent activity
-    await redis.lpush('recent_activity', JSON.stringify({
-      timestamp: new Date().toISOString(),
-      connections: actualActiveConnections,
-      users: actualActiveUsers,
-      messages: messageCount,
-      errors: errorCount
-    }));
+    // Execute pipeline to get current values
+    const results = await pipeline.exec();
+    const actualActiveConnections = results?.[0]?.[1] || 0;
+    const actualActiveUsers = results?.[1]?.[1] || 0;
+    const totalRequests = parseInt(results?.[2]?.[1] || '0');
     
-    // Keep only last 100 activities
-    await redis.ltrim('recent_activity', 0, 99);
+    // Create new pipeline for all writes
+    const writePipeline = redis.pipeline();
+    
+    // Batch all metric updates
+    writePipeline.set('messages_this_minute', messageCount);
+    writePipeline.set('total_errors', errorCount);
+    writePipeline.set('metrics_active_connections', actualActiveConnections);
+    writePipeline.set('metrics_active_users', actualActiveUsers);
+    writePipeline.set('avg_response_time', avgResponseTime);
+    writePipeline.set('websocket_last_heartbeat', new Date().toISOString());
+    writePipeline.set('total_requests', totalRequests + messageCount);
+    
+    // Add activity log (only if we have activity)
+    if (messageCount > 0 || actualActiveConnections > 0) {
+      writePipeline.lpush('recent_activity', JSON.stringify({
+        timestamp: new Date().toISOString(),
+        connections: actualActiveConnections,
+        users: actualActiveUsers,
+        messages: messageCount,
+        errors: errorCount
+      }));
+      writePipeline.ltrim('recent_activity', 0, 99);
+    }
+    
+    // Execute all writes in one batch
+    await writePipeline.exec();
     
     console.log(`📊 Metrics: ${actualActiveConnections} connections, ${actualActiveUsers} users, ${messageCount} msgs/min`);
     
@@ -230,32 +217,17 @@ io.on("connection", (socket) => {
     socketUsers.set(socket.id, userId);
     console.log("Identify", socket.id, "->", userId);
     
-    // Track active user with proper error handling
+    // Track active user with minimal Redis commands
     if (userId) {
       try {
-        // Check if keys exist and are the right type, if not, delete them
-        const userType = await redis.type('active_users');
-        const connType = await redis.type('active_connections');
-        
-        if (userType !== 'set') {
-          await redis.del('active_users');
-        }
-        if (connType !== 'set') {
-          await redis.del('active_connections');
-        }
-        
-        await redis.sadd('active_users', userId);
-        await redis.sadd('active_connections', socket.id);
+        // Use pipeline to batch operations
+        const pipeline = redis.pipeline();
+        pipeline.sadd('active_users', userId);
+        pipeline.sadd('active_connections', socket.id);
+        await pipeline.exec();
       } catch (err) {
         console.error("Error tracking active user:", err);
-        // If there's still an error, try to clear and recreate
-        try {
-          await redis.del('active_users', 'active_connections');
-          await redis.sadd('active_users', userId);
-          await redis.sadd('active_connections', socket.id);
-        } catch (retryErr) {
-          console.error("Retry failed:", retryErr);
-        }
+        // If there's an error, just skip tracking (don't spam Redis with retries)
       }
     }
   });
@@ -369,10 +341,12 @@ io.on("connection", (socket) => {
           await cleanupUser(uid);
           socketUsers.delete(socket.id);
           
-          // Remove from active tracking with error handling
+          // Remove from active tracking with minimal Redis commands
           try {
-            await redis.srem('active_users', uid);
-            await redis.srem('active_connections', socket.id);
+            const pipeline = redis.pipeline();
+            pipeline.srem('active_users', uid);
+            pipeline.srem('active_connections', socket.id);
+            await pipeline.exec();
           } catch (err) {
             console.error("Error removing from active tracking:", err);
           }
