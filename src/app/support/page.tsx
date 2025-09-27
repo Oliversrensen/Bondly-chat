@@ -50,10 +50,10 @@ export default function SupportPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-medium mb-2 text-dark-200">Can I block someone?</h3>
+                  <h3 className="text-lg font-medium mb-2 text-dark-200">How do I end a chat?</h3>
                   <p className="text-dark-300 text-sm">
-                    Yes, you can end the chat anytime by clicking "Next Chat" or closing the tab. 
-                    You won't be matched with them again.
+                    You can end the chat anytime by clicking "Next Chat" or closing the tab. 
+                    This will start a new search for a different conversation partner.
                   </p>
                 </div>
               </div>
