@@ -144,10 +144,13 @@ async function saveMessageBatch() {
     
     console.log("📝 Message data structure:", JSON.stringify(messageData, null, 2));
     
-    // Create all messages in one batch - much simpler now!
-    await prisma.message.createMany({
-      data: messageData
-    });
+    // Use raw SQL to bypass Prisma client issues
+    for (const msg of messageData) {
+      await prisma.$executeRaw`
+        INSERT INTO "Message" ("id", "createdAt", "authorId", "text", "roomId")
+        VALUES (${msg.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`}, ${new Date()}, ${msg.authorId}, ${msg.text}, ${msg.roomId})
+      `;
+    }
     
     console.log(`✅ Successfully saved ${messageBuffer.length} messages`);
     messageBuffer = []; // Clear buffer
