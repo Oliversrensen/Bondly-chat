@@ -46,17 +46,12 @@ export default async function HomePage({
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
                 <span className="block">Chat anonymously</span>
                 <span className="block bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-                  with Strangers
-                </span>
-                <span className="block">Safe & Secure</span>
-                <span className="block bg-gradient-to-r from-secondary-400 to-secondary-600 bg-clip-text text-transparent">
-                  Real Connections
+                  with strangers
                 </span>
               </h1>
               
-              <p className="text-xl text-dark-300 max-w-3xl mx-auto leading-relaxed">
-                Connect with strangers! Make new friends, have meaningful conversations, 
-                and build connections in a completely safe and anonymous environment.
+              <p className="text-xl text-dark-300 max-w-2xl mx-auto leading-relaxed">
+                Safe, anonymous, instant connections.
               </p>
             </div>
 
@@ -141,11 +136,10 @@ export default async function HomePage({
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">
-              Why Choose <span className="bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">Bondly</span> for Anonymous Chat?
+              Why <span className="bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">Bondly</span>?
             </h2>
             <p className="text-xl text-dark-300 max-w-2xl mx-auto">
-              The safest and most secure anonymous chat platform. Connect with strangers instantly, 
-              share interests, and build meaningful relationships without revealing your identity.
+              Safe, instant, anonymous connections.
             </p>
           </div>
 
