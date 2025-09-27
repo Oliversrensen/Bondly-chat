@@ -44,7 +44,7 @@ export default async function HomePage({
             {/* Main Heading */}
             <div className="space-y-4">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
-                <span className="block">Anonymous Chat</span>
+                <span className="block">Chat anonymously</span>
                 <span className="block bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
                   with Strangers
                 </span>
@@ -55,8 +55,8 @@ export default async function HomePage({
               </h1>
               
               <p className="text-xl text-dark-300 max-w-3xl mx-auto leading-relaxed">
-                Connect with strangers through anonymous chat. Make new friends, have meaningful conversations, 
-                and build connections in a completely safe and anonymous environment. No registration required.
+                Connect with strangers! Make new friends, have meaningful conversations, 
+                and build connections in a completely safe and anonymous environment.
               </p>
             </div>
 
