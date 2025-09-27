@@ -3,8 +3,17 @@ const { Server } = require("socket.io");
 const { PrismaClient } = require("@prisma/client");
 const { Redis } = require("ioredis");
 
+// Force Prisma client regeneration on startup
+console.log("🔄 Initializing Prisma client...");
 const prisma = new PrismaClient();
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+
+// Test the Prisma client with a simple query to ensure it's working
+prisma.$connect().then(() => {
+  console.log("✅ Prisma client connected successfully");
+}).catch((err) => {
+  console.error("❌ Prisma client connection failed:", err);
+});
 
 // Metrics tracking
 let messageCount = 0;

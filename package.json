@@ -8,6 +8,7 @@
     "start": "next start",
     "ws": "node ws/server.js",
     "ws:dev": "node ws/server.js",
+    "ws:build": "prisma generate && node ws/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
   },

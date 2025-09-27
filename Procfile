@@ -1,1 +1,1 @@
-web: prisma generate && node ws/server.js
+web: npm run ws:build
