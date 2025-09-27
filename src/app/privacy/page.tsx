@@ -92,7 +92,7 @@ export default function PrivacyPage() {
                   If you have questions about this Privacy Policy, please contact us at:
                 </p>
                 <p className="text-dark-300 leading-relaxed mt-2">
-                  Email: privacy@bondly.chat
+                  Email: support@bondly.chat
                 </p>
               </section>
             </div>

@@ -133,7 +133,7 @@ export default function SupportPage() {
                 Email Support
               </a>
               <a 
-                href="mailto:feedback@bondly.chat" 
+                href="mailto:support@bondly.chat" 
                 className="btn btn-ghost px-6 py-3"
               >
                 Send Feedback

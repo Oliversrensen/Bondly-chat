@@ -122,7 +122,7 @@ export default function TermsPage() {
                   For questions about these Terms of Service, please contact us at:
                 </p>
                 <p className="text-dark-300 leading-relaxed mt-2">
-                  Email: legal@bondly.chat
+                  Email: support@bondly.chat
                 </p>
               </section>
             </div>
