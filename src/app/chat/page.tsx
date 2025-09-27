@@ -149,7 +149,28 @@ export default function ChatPage() {
       stopPolling();
     });
 
+    // Handle page unload (close tab, navigate away, etc.)
+    const handleBeforeUnload = () => {
+      if (s.connected && roomId) {
+        s.emit("leave_room", { roomId });
+        s.disconnect();
+      }
+    };
+
+    // Handle page visibility change (tab switching, minimizing, etc.)
+    const handleVisibilityChange = () => {
+      if (document.hidden && s.connected && roomId) {
+        s.emit("leave_room", { roomId });
+        s.disconnect();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       s.disconnect();
     };
   }, [session?.user?.id]);
