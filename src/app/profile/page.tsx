@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { track } from '@vercel/analytics';
 
 export default function ProfilePage() {
   const [gender, setGender] = useState("Undisclosed");
@@ -63,6 +64,14 @@ export default function ProfilePage() {
       successBtn.classList.add('animate-scale-in');
       setTimeout(() => successBtn.classList.remove('animate-scale-in'), 200);
     }
+    
+    // Track profile update
+    track('profile_updated', { 
+      gender, 
+      interestCount: selected.length, 
+      hasSillyName: !!sillyName,
+      isPro 
+    });
     
     setSaving(false);
   }

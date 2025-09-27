@@ -3,6 +3,7 @@ import Link from "next/link";
 import React from "react";
 import Providers from "./providers";
 import dynamic from "next/dynamic";
+import { Analytics } from '@vercel/analytics/react';
 
 const AuthButtons = dynamic(() => import("@/components/AuthButtons"), {
   ssr: false,
@@ -139,6 +140,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </footer>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
