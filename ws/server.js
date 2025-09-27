@@ -354,6 +354,16 @@ io.on("connection", (socket) => {
       // Disconnect cleanup
       socket.on("disconnect", async () => {
         const uid = socketUsers.get(socket.id);
+        
+        // Notify all rooms this socket was in that the user left
+        const rooms = Array.from(socket.rooms);
+        for (const roomId of rooms) {
+          if (roomId !== socket.id) { // Skip the socket's own room
+            socket.to(roomId).emit("ended");
+            console.log(`User disconnected from room ${roomId}`);
+          }
+        }
+        
         if (uid) {
           await cleanupUser(uid);
           socketUsers.delete(socket.id);
