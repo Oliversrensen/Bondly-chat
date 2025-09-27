@@ -67,6 +67,10 @@ export async function POST(req: NextRequest) {
     me?.isPro && genderFilter ? normalizeFilter(genderFilter) : "ANY";
 
   console.log("ENQUEUE", uid, "mode:", mode, "myGender:", myGender, "myFilter:", myFilter);
+  
+  // Debug: Check queue status
+  const queueLength = await redis.llen("queue:random");
+  console.log("📊 Queue length:", queueLength);
 
   // Set presence TTL
   const presenceTtl = Number(process.env.PRESENCE_TTL ?? 90);
@@ -76,9 +80,14 @@ export async function POST(req: NextRequest) {
   // RANDOM MODE
   // -------------------
   if (mode === "random") {
+    console.log("🔍 Starting random matching loop...");
     for (let i = 0; i < 50; i++) {
       const other = await redis.lpop("queue:random");
-      if (!other) break;
+      console.log(`🔍 Loop ${i}: popped user ${other}`);
+      if (!other) {
+        console.log("🔍 No more users in queue");
+        break;
+      }
 
       const alive = await redis.exists(`queue:random:user:${other}`);
       if (!alive) {
