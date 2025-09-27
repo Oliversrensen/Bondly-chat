@@ -4,6 +4,7 @@ import React from "react";
 import Providers from "./providers";
 import dynamic from "next/dynamic";
 import { Analytics } from '@vercel/analytics/react';
+import StructuredData from '@/components/StructuredData';
 
 const AuthButtons = dynamic(() => import("@/components/AuthButtons"), {
   ssr: false,
@@ -14,8 +15,69 @@ const MobileMenu = dynamic(() => import("@/components/MobileMenu"), {
 });
 
 export const metadata = {
-  title: "Bondly - Talk to strangers!",
-  description: "Make friends and build connections through chat",
+  title: {
+    default: "Bondly - Anonymous Chat with Strangers",
+    template: "%s | Bondly"
+  },
+  description: "Connect with strangers through anonymous chat. Make new friends, have meaningful conversations, and build connections in a safe, anonymous environment.",
+  keywords: [
+    "anonymous chat",
+    "chat with strangers",
+    "online chat",
+    "random chat",
+    "meet new people",
+    "anonymous messaging",
+    "stranger chat app",
+    "online friends",
+    "chat room",
+    "social connection"
+  ],
+  authors: [{ name: "Bondly Team" }],
+  creator: "Bondly",
+  publisher: "Bondly",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://bondly.chat'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://bondly.chat',
+    siteName: 'Bondly',
+    title: 'Bondly - Anonymous Chat with Strangers',
+    description: 'Connect with strangers through anonymous chat. Make new friends, have meaningful conversations, and build connections in a safe, anonymous environment.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Bondly - Anonymous Chat with Strangers',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Bondly - Anonymous Chat with Strangers',
+    description: 'Connect with strangers through anonymous chat. Make new friends, have meaningful conversations, and build connections in a safe, anonymous environment.',
+    images: ['/og-image.png'],
+    creator: '@bondly_chat',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",
@@ -140,6 +202,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </footer>
         </Providers>
+        <StructuredData />
         <Analytics />
       </body>
     </html>

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /pro
+Disallow: /chat
+Disallow: /profile
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://bondly.chat/sitemap.xml
