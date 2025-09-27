@@ -102,10 +102,12 @@ export async function POST(req: NextRequest) {
 
       const result = await redis.pipeline().exists(PRESENCE(other)).exec();
       const live = result?.[0]?.[1];
+      console.log(`🔍 User ${other} presence check:`, live);
       if (live !== 1) {
-        console.log("Candidate offline", other);
+        console.log("❌ Candidate offline", other);
         continue;
       }
+      console.log("✅ Candidate online", other);
 
       // Candidate info from DB
       const otherUser = await prisma.user.findUnique({
@@ -129,21 +131,35 @@ export async function POST(req: NextRequest) {
 
       // ✅ Match!
       const roomId = randomUUID().slice(0, 12);
-      await prisma.match.create({
-        data: { initiatorId: uid, joinerId: other, mode, roomId },
-      });
-      await notifyPair(uid, other, roomId);
+      console.log("🎉 Creating match:", { initiatorId: uid, joinerId: other, mode, roomId });
+      
+      try {
+        await prisma.match.create({
+          data: { initiatorId: uid, joinerId: other, mode, roomId },
+        });
+        console.log("✅ Match created successfully");
+        
+        await notifyPair(uid, other, roomId);
+        console.log("✅ Notifications sent");
 
-      return NextResponse.json({
-        queued: false,
-        roomId,
-        partnerName: otherUser.sillyName ?? "Anonymous",
-      });
+        return NextResponse.json({
+          queued: false,
+          roomId,
+          partnerName: otherUser.sillyName ?? "Anonymous",
+        });
+      } catch (err) {
+        console.error("❌ Failed to create match:", err);
+        // Put the user back in queue
+        await redis.rpush("queue:random", other);
+        continue;
+      }
     }
 
     // No match found → enqueue self
+    console.log("📝 No match found, enqueuing user:", uid);
     await redis.rpush("queue:random", uid);
     await redis.setex(`queue:random:user:${uid}`, QUEUE_TTL, "1");
+    console.log("✅ User enqueued successfully");
     return NextResponse.json({ queued: true });
   }
 
