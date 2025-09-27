@@ -67,10 +67,6 @@ export async function POST(req: NextRequest) {
     me?.isPro && genderFilter ? normalizeFilter(genderFilter) : "ANY";
 
   console.log("ENQUEUE", uid, "mode:", mode, "myGender:", myGender, "myFilter:", myFilter);
-  
-  // Debug: Check queue status
-  const queueLength = await redis.llen("queue:random");
-  console.log("📊 Queue length:", queueLength);
 
   // Set presence TTL
   const presenceTtl = Number(process.env.PRESENCE_TTL ?? 90);
@@ -80,14 +76,9 @@ export async function POST(req: NextRequest) {
   // RANDOM MODE
   // -------------------
   if (mode === "random") {
-    console.log("🔍 Starting random matching loop...");
     for (let i = 0; i < 50; i++) {
       const other = await redis.lpop("queue:random");
-      console.log(`🔍 Loop ${i}: popped user ${other}`);
-      if (!other) {
-        console.log("🔍 No more users in queue");
-        break;
-      }
+      if (!other) break;
 
       const alive = await redis.exists(`queue:random:user:${other}`);
       if (!alive) {
@@ -102,12 +93,10 @@ export async function POST(req: NextRequest) {
 
       const result = await redis.pipeline().exists(PRESENCE(other)).exec();
       const live = result?.[0]?.[1];
-      console.log(`🔍 User ${other} presence check:`, live);
       if (live !== 1) {
-        console.log("❌ Candidate offline", other);
+        console.log("Candidate offline", other);
         continue;
       }
-      console.log("✅ Candidate online", other);
 
       // Candidate info from DB
       const otherUser = await prisma.user.findUnique({
@@ -131,28 +120,16 @@ export async function POST(req: NextRequest) {
 
       // ✅ Match!
       const roomId = randomUUID().slice(0, 12);
-      console.log("🎉 Creating match:", { initiatorId: uid, joinerId: other, mode, roomId });
-      
-      try {
-        await prisma.match.create({
-          data: { initiatorId: uid, joinerId: other, mode, roomId },
-        });
-        console.log("✅ Match created successfully");
-        
-        await notifyPair(uid, other, roomId);
-        console.log("✅ Notifications sent");
+      await prisma.match.create({
+        data: { initiatorId: uid, joinerId: other, mode, roomId },
+      });
+      await notifyPair(uid, other, roomId);
 
-        return NextResponse.json({
-          queued: false,
-          roomId,
-          partnerName: otherUser.sillyName ?? "Anonymous",
-        });
-      } catch (err) {
-        console.error("❌ Failed to create match:", err);
-        // Put the user back in queue
-        await redis.rpush("queue:random", other);
-        continue;
-      }
+      return NextResponse.json({
+        queued: false,
+        roomId,
+        partnerName: otherUser.sillyName ?? "Anonymous",
+      });
     }
 
     // No match found → enqueue self
