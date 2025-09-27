@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { Send, Sparkles, Shuffle, SkipForward, Flag } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { track } from '@vercel/analytics';
 
 type ChatMessage = {
   text: string;
@@ -213,8 +212,6 @@ export default function ChatPage() {
     startHeartbeat();
     clearQueueTimeout();
     
-    // Track search start
-    track('chat_search_started', { mode, genderFilter, isPro });
 
     const res = await fetch("/api/match/enqueue", {
       method: "POST",
@@ -265,8 +262,6 @@ export default function ChatPage() {
             setRoomId(data.roomId);
             stopPolling();
             
-            // Track successful match
-            track('chat_match_found', { mode: lastMode, genderFilter, isPro });
           }
         }, 3000);
       }
@@ -286,8 +281,6 @@ export default function ChatPage() {
     socketRef.current.emit("stop_typing", { roomId });
     setText("");
     
-    // Track message sent
-    track('chat_message_sent', { mode: lastMode, messageLength: text.length });
   }
 
   function handleTyping(value: string) {
@@ -315,8 +308,6 @@ export default function ChatPage() {
       body: JSON.stringify(payload),
     });
     
-    // Track user report
-    track('user_reported', { mode: lastMode, messageCount: messages.length });
     
     alert("Report submitted. Thank you for helping keep Kindred safe.");
   }
@@ -332,8 +323,6 @@ export default function ChatPage() {
     stopPolling();
     clearQueueTimeout();
     
-    // Track chat ended by user
-    track('chat_ended_by_user', { mode: lastMode, messageCount: messages.length });
     
     start(lastMode);
   }
