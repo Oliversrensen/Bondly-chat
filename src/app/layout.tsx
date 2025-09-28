@@ -5,6 +5,7 @@ import Providers from "./providers";
 import dynamic from "next/dynamic";
 import { Analytics } from '@vercel/analytics/react';
 import StructuredData from '@/components/StructuredData';
+import Script from 'next/script';
 
 const AuthButtons = dynamic(() => import("@/components/AuthButtons"), {
   ssr: false,
@@ -99,7 +100,7 @@ export const metadata = {
     },
   },
   verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION,
+    google: process.env.GOOGLE_SITE_VERIFICATION || 'google-site-verification=your-verification-code-here',
     yandex: process.env.YANDEX_VERIFICATION,
     yahoo: process.env.YAHOO_VERIFICATION,
   },
@@ -244,6 +245,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Providers>
         <StructuredData />
         <Analytics />
+        
+        {/* Google Analytics 4 */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
+                  page_title: document.title,
+                  page_location: window.location.href,
+                });
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );
