@@ -26,37 +26,19 @@ export default function ProPage() {
     {
       icon: "🎭",
       title: "Custom Display Names",
-      description: "Set your own unique display name instead of 'Anonymous'",
+      description: "Set your own unique display name to stand out in conversations",
       pro: true
     },
     {
       icon: "👥",
       title: "Gender Filtering",
-      description: "Filter matches by gender preference for better compatibility",
+      description: "Filter matches by gender preference (Male/Female/Any) for better compatibility",
       pro: true
     },
     {
       icon: "⭐",
       title: "Priority Matching",
-      description: "Get matched faster with our priority queue system",
-      pro: true
-    },
-    {
-      icon: "🎨",
-      title: "Custom Themes",
-      description: "Personalize your chat experience with exclusive themes",
-      pro: true
-    },
-    {
-      icon: "📊",
-      title: "Advanced Analytics",
-      description: "See your connection stats and chat insights",
-      pro: true
-    },
-    {
-      icon: "🛡️",
-      title: "Enhanced Security",
-      description: "Advanced moderation and safety features",
+      description: "Get matched faster with priority placement in the matching queue",
       pro: true
     }
   ];
@@ -76,9 +58,66 @@ export default function ProPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          {/* Pricing Card */}
-          <div className="card card-glow animate-scale-in">
+        {/* Free vs Pro Comparison */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
+          {/* Free Plan */}
+          <div className="card card-elevated">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold mb-2 text-secondary-400">Free</h3>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-secondary-400">$0</span>
+                <span className="text-dark-400">/month</span>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-dark-300">Anonymous chat with strangers</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-dark-300">Random matching</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-dark-300">Interest-based matching</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-dark-300">Basic safety features</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span className="text-dark-400">Custom display name</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span className="text-dark-400">No gender filtering</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pro Plan */}
+          <div className="card card-glow animate-scale-in relative">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <span className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
+                Most Popular
+              </span>
+            </div>
+            
             <div className="text-center mb-8">
               <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-3xl flex items-center justify-center">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,18 +125,14 @@ export default function ProPage() {
                 </svg>
               </div>
               
-              <h2 className="text-3xl font-bold mb-2">Pro Membership</h2>
+              <h3 className="text-2xl font-bold mb-2">Pro</h3>
               <div className="mb-6">
-                <span className="text-5xl font-bold text-primary-400">$9.99</span>
-                <span className="text-dark-400 text-lg">/month</span>
+                <span className="text-4xl font-bold text-primary-400">$5.99</span>
+                <span className="text-dark-400">/month</span>
               </div>
-              
-              <p className="text-dark-300 mb-8">
-                Get unlimited access to all premium features and enhance your chat experience
-              </p>
 
               <button
-                className="btn btn-primary px-8 py-4 text-lg font-semibold w-full group"
+                className="btn btn-primary px-8 py-4 text-lg font-semibold w-full group mb-4"
                 onClick={upgrade}
                 disabled={loading}
               >
@@ -120,49 +155,64 @@ export default function ProPage() {
                 )}
               </button>
 
-              <p className="text-xs text-dark-500 mt-4">
-                Powered by Stripe • Cancel anytime • 30-day money-back guarantee
+              <p className="text-xs text-dark-500">
+                Cancel anytime • 30-day money-back guarantee
               </p>
             </div>
-          </div>
-
-          {/* Features List */}
-          <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-center mb-8">
-              <span className="bg-gradient-to-r from-accent-400 to-primary-400 bg-clip-text text-transparent">
-                Pro Features
-              </span>
-            </h3>
             
-            <div className="grid gap-4">
-              {features.map((feature, index) => (
-                <div 
-                  key={index}
-                  className="card card-elevated group hover:card-glow transition-all duration-300 animate-slide-in-up"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-                      {feature.icon}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-lg font-semibold text-primary-400 mb-1">
-                        {feature.title}
-                      </h4>
-                      <p className="text-dark-300 text-sm">
-                        {feature.description}
-                      </p>
-                    </div>
-                    <div className="w-6 h-6 bg-accent-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-dark-300">Everything in Free</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-dark-300">Custom display names</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-dark-300">Gender filtering</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-dark-300">Priority matching</span>
+              </div>
+
             </div>
           </div>
+        </div>
+
+        {/* Feature Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          {features.map((feature, index) => (
+            <div 
+              key={index}
+              className="card card-elevated group hover:card-glow transition-all duration-300 animate-slide-in-up"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
+                  {feature.icon}
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-semibold text-primary-400 mb-1">
+                    {feature.title}
+                  </h4>
+                  <p className="text-dark-300 text-sm">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Benefits Section */}

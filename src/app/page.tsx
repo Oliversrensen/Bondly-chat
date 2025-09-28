@@ -50,16 +50,11 @@ export default async function HomePage({
                 <span className="block bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
                   with Strangers
                 </span>
-                <span className="block">Make Friends</span>
-                <span className="block bg-gradient-to-r from-secondary-400 to-secondary-600 bg-clip-text text-transparent">
-                  Safely Online
-                </span>
               </h1>
               
               <p className="text-xl text-dark-300 max-w-3xl mx-auto leading-relaxed">
-                Join Bondly, the best anonymous chat app to meet new people and make friends. 
-                Chat with strangers safely, build meaningful connections, and discover amazing conversations 
-                in our secure anonymous chat platform.
+                Meet new people, make friends, and have meaningful conversations 
+                in a safe, anonymous environment.
               </p>
             </div>
 

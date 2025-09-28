@@ -123,13 +123,14 @@ export const metadata = {
     'og:image:type': 'image/svg+xml',
   },
   manifest: "/manifest.json",
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
   themeColor: "#FF6B00",
   colorScheme: "dark",
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
