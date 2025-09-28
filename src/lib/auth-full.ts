@@ -14,6 +14,13 @@ export const authConfig: NextAuthConfig = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
     GitHubProvider({
       clientId: process.env.GITHUB_ID!,
@@ -24,6 +31,8 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, user }) { if (user?.id) token.sub = user.id; return token; },
     async session({ session, token }) { if (session.user && token.sub) (session.user as any).id = token.sub; return session; },
   },
+  trustHost: true,
+  secret: process.env.AUTH_SECRET,
   events: {
   async createUser({ user }) {
     if (!user?.id) return;
