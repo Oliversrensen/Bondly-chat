@@ -100,7 +100,7 @@ export const metadata = {
     },
   },
   verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION || 'google-site-verification=your-verification-code-here',
+    google: process.env.GOOGLE_SITE_VERIFICATION || '7i9WUwAq9bVsesUoXLSRmBj3mUSfb6W7q5mmhecy_58',
     yandex: process.env.YANDEX_VERIFICATION,
     yahoo: process.env.YAHOO_VERIFICATION,
   },

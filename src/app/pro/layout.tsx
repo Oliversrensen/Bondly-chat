@@ -1,31 +1,32 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Bondly Pro - Premium Chat Features',
-  description: 'Upgrade to Bondly Pro for premium features including priority matching, advanced filters, and enhanced chat experience.',
+  title: "Bondly Pro - Premium Anonymous Chat Features | Upgrade Now",
+  description: "Unlock premium features with Bondly Pro: custom display names, gender filtering, priority matching, and enhanced security. Upgrade your anonymous chat experience today!",
   keywords: [
-    'bondly pro',
-    'premium chat',
-    'chat upgrade',
-    'priority matching',
-    'advanced filters',
-    'premium features',
-    'chat subscription',
-    'pro membership'
+    "bondly pro",
+    "premium chat features",
+    "anonymous chat upgrade",
+    "custom display names",
+    "gender filtering chat",
+    "priority matching",
+    "premium chat app",
+    "bondly subscription",
+    "chat app premium",
+    "enhanced chat features"
   ],
   openGraph: {
-    title: 'Bondly Pro - Premium Chat Features',
-    description: 'Upgrade to Bondly Pro for premium features including priority matching, advanced filters, and enhanced chat experience.',
-    type: 'website',
-    url: 'https://bondly.chat/pro',
+    title: "Bondly Pro - Premium Anonymous Chat Features | Upgrade Now",
+    description: "Unlock premium features with Bondly Pro: custom display names, gender filtering, priority matching, and enhanced security.",
+    url: "https://bondly.chat/pro",
+    type: "website",
   },
   twitter: {
-    title: 'Bondly Pro - Premium Chat Features',
-    description: 'Upgrade to Bondly Pro for premium features including priority matching, advanced filters, and enhanced chat experience.',
+    title: "Bondly Pro - Premium Anonymous Chat Features | Upgrade Now",
+    description: "Unlock premium features with Bondly Pro: custom display names, gender filtering, priority matching, and enhanced security.",
   },
-  robots: {
-    index: true,
-    follow: true,
+  alternates: {
+    canonical: "/pro",
   },
 };
 

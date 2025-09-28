@@ -1,31 +1,32 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Anonymous Chat Room - Start Chatting Now',
-  description: 'Join our anonymous chat room and start conversations with strangers. Safe, secure, and completely anonymous chat experience.',
+  title: "Anonymous Chat - Start Chatting with Strangers | Bondly",
+  description: "Start anonymous conversations with strangers instantly. Join random chat rooms or connect based on shared interests. Safe, secure, and anonymous chat platform.",
   keywords: [
-    'anonymous chat room',
-    'live chat',
-    'stranger chat',
-    'online chat room',
-    'random chat',
-    'instant messaging',
-    'chat with strangers',
-    'anonymous messaging'
+    "anonymous chat room",
+    "chat with strangers instantly",
+    "random chat app",
+    "anonymous messaging",
+    "stranger chat platform",
+    "instant chat",
+    "chat anonymously",
+    "bondly chat room",
+    "online chat with strangers",
+    "anonymous conversation"
   ],
   openGraph: {
-    title: 'Anonymous Chat Room - Start Chatting Now',
-    description: 'Join our anonymous chat room and start conversations with strangers. Safe, secure, and completely anonymous chat experience.',
-    type: 'website',
-    url: 'https://bondly.chat/chat',
+    title: "Anonymous Chat - Start Chatting with Strangers | Bondly",
+    description: "Start anonymous conversations with strangers instantly. Join random chat rooms or connect based on shared interests.",
+    url: "https://bondly.chat/chat",
+    type: "website",
   },
   twitter: {
-    title: 'Anonymous Chat Room - Start Chatting Now',
-    description: 'Join our anonymous chat room and start conversations with strangers. Safe, secure, and completely anonymous chat experience.',
+    title: "Anonymous Chat - Start Chatting with Strangers | Bondly",
+    description: "Start anonymous conversations with strangers instantly. Join random chat rooms or connect based on shared interests.",
   },
-  robots: {
-    index: false, // Don't index chat pages as they're dynamic
-    follow: true,
+  alternates: {
+    canonical: "/chat",
   },
 };
 
