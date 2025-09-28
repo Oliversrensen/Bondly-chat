@@ -3,8 +3,8 @@ import Link from "next/link";
 import React from "react";
 import Providers from "./providers";
 import dynamic from "next/dynamic";
-import { Analytics } from '@vercel/analytics/react';
 import StructuredData from '@/components/StructuredData';
+import SafeAnalytics from '@/components/Analytics';
 import Script from 'next/script';
 
 const AuthButtons = dynamic(() => import("@/components/AuthButtons"), {
@@ -252,7 +252,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </footer>
         </Providers>
         <StructuredData />
-        <Analytics />
+        
+        {/* Safe Analytics with error handling */}
+        <SafeAnalytics />
         
         {/* Google Analytics 4 */}
         {process.env.NEXT_PUBLIC_GA_ID && (
