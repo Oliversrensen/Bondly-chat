@@ -94,11 +94,35 @@ export default function StructuredData() {
         "@id": "https://bondly.chat/#organization",
         "name": "Bondly",
         "url": "https://bondly.chat",
-        "logo": {
+        "logo": [
+          {
+            "@type": "ImageObject",
+            "url": "https://bondly.chat/logo.svg",
+            "width": 64,
+            "height": 64,
+            "caption": "Bondly - Anonymous Chat App Logo"
+          },
+          {
+            "@type": "ImageObject",
+            "url": "https://bondly.chat/logo.svg",
+            "width": 192,
+            "height": 192,
+            "caption": "Bondly - Anonymous Chat App Logo"
+          },
+          {
+            "@type": "ImageObject",
+            "url": "https://bondly.chat/logo.svg",
+            "width": 512,
+            "height": 512,
+            "caption": "Bondly - Anonymous Chat App Logo"
+          }
+        ],
+        "image": {
           "@type": "ImageObject",
           "url": "https://bondly.chat/logo.svg",
-          "width": 100,
-          "height": 100
+          "width": 64,
+          "height": 64,
+          "caption": "Bondly - Anonymous Chat App Logo"
         },
         "sameAs": [
           "https://twitter.com/bondly_chat"
@@ -110,6 +134,12 @@ export default function StructuredData() {
         "url": "https://bondly.chat",
         "name": "Bondly - Anonymous Chat App",
         "description": "The best anonymous chat app to meet new people and make friends safely",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://bondly.chat/logo.svg",
+          "width": 64,
+          "height": 64
+        },
         "publisher": {
           "@id": "https://bondly.chat/#organization"
         },

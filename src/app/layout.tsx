@@ -106,13 +106,21 @@ export const metadata = {
   },
   icons: {
     icon: [
+      { url: "/logo.svg", sizes: "64x64", type: "image/svg+xml" },
       { url: "/favicon.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon.png", sizes: "16x16", type: "image/png" },
     ],
     shortcut: "/favicon.png",
     apple: [
+      { url: "/logo.svg", sizes: "180x180", type: "image/svg+xml" },
       { url: "/favicon.png", sizes: "180x180", type: "image/png" },
     ],
+  },
+  other: {
+    'og:image': '/logo.svg',
+    'og:image:width': '64',
+    'og:image:height': '64',
+    'og:image:type': 'image/svg+xml',
   },
   manifest: "/manifest.json",
   themeColor: "#FF6B00",
