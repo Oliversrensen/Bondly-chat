@@ -35,8 +35,10 @@ export default async function HomePage({
             <div className="relative inline-block">
               <img 
                 src="/logo.svg" 
-                alt="Bondly logo" 
+                alt="Bondly - Anonymous Chat App Logo - Chat with Strangers Safely" 
                 className="h-24 w-24 mx-auto mb-6 animate-bounce-gentle" 
+                width="96"
+                height="96"
               />
               <div className="absolute inset-0 bg-primary-500/20 rounded-full blur-xl animate-pulse-glow"></div>
             </div>
@@ -44,19 +46,20 @@ export default async function HomePage({
             {/* Main Heading */}
             <div className="space-y-4">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
-                <span className="block">Meet</span>
+                <span className="block">Anonymous Chat</span>
                 <span className="block bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-                  New Friends
+                  with Strangers
                 </span>
-                <span className="block">Build</span>
+                <span className="block">Make Friends</span>
                 <span className="block bg-gradient-to-r from-secondary-400 to-secondary-600 bg-clip-text text-transparent">
-                  Real Bonds
+                  Safely Online
                 </span>
               </h1>
               
               <p className="text-xl text-dark-300 max-w-3xl mx-auto leading-relaxed">
-                Chat in a warm, welcoming space. Share interests, make friends, and
-                connect without pressure. Every conversation is a chance to discover something new.
+                Join Bondly, the best anonymous chat app to meet new people and make friends. 
+                Chat with strangers safely, build meaningful connections, and discover amazing conversations 
+                in our secure anonymous chat platform.
               </p>
             </div>
 
@@ -121,15 +124,15 @@ export default async function HomePage({
             <div className="flex flex-wrap justify-center gap-8 pt-12">
               <div className="text-center">
                 <div className="text-3xl font-bold text-primary-400">10K+</div>
-                <div className="text-sm text-dark-400">Active Users</div>
+                <div className="text-sm text-dark-400">Anonymous Chat Users</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-secondary-400">50K+</div>
-                <div className="text-sm text-dark-400">Connections Made</div>
+                <div className="text-sm text-dark-400">Stranger Connections</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-accent-400">99%</div>
-                <div className="text-sm text-dark-400">Satisfaction Rate</div>
+                <div className="text-sm text-dark-400">Safe Chat Experience</div>
               </div>
             </div>
           </div>
@@ -141,10 +144,11 @@ export default async function HomePage({
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">
-              Why Choose <span className="bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">Bondly</span>?
+              Why Choose <span className="bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">Bondly</span> Anonymous Chat?
             </h2>
             <p className="text-xl text-dark-300 max-w-2xl mx-auto">
-              Experience the future of social connection with our innovative features
+              The best anonymous chat app for meeting strangers and making friends safely. 
+              Experience secure, meaningful conversations with our innovative chat platform.
             </p>
           </div>
 
@@ -157,9 +161,10 @@ export default async function HomePage({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-primary-400">Friendly Encounters</h3>
+                <h3 className="text-xl font-semibold text-primary-400">Anonymous Chat with Strangers</h3>
                 <p className="text-dark-300">
-                  Say hi to someone new — every chat is a chance to make a friend and discover something amazing.
+                  Start anonymous conversations instantly. Every chat is a chance to meet new people, 
+                  make friends, and discover meaningful connections safely.
                 </p>
               </div>
             </div>
@@ -172,9 +177,10 @@ export default async function HomePage({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-secondary-400">Shared Interests</h3>
+                <h3 className="text-xl font-semibold text-secondary-400">Interest-Based Chat Matching</h3>
                 <p className="text-dark-300">
-                  Connect with people who love the same things you do. Find your tribe through common passions.
+                  Connect with strangers who share your interests. Our smart matching algorithm helps you 
+                  find people with common passions for better conversations.
                 </p>
               </div>
             </div>
@@ -187,9 +193,10 @@ export default async function HomePage({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-accent-400">Genuine Connections</h3>
+                <h3 className="text-xl font-semibold text-accent-400">Safe Anonymous Messaging</h3>
                 <p className="text-dark-300">
-                  Casual chats or deeper bonds — build relationships that last and create meaningful memories.
+                  Chat anonymously with complete privacy protection. Build genuine relationships 
+                  through safe, secure messaging with our advanced moderation system.
                 </p>
               </div>
             </div>
@@ -203,10 +210,11 @@ export default async function HomePage({
           <div className="card card-glow animate-scale-in">
             <div className="space-y-6">
               <h2 className="text-3xl font-bold">
-                Ready to Start Your Journey?
+                Ready to Start Anonymous Chatting?
               </h2>
               <p className="text-xl text-dark-300">
-                Join thousands of people who have already discovered the joy of meaningful connections.
+                Join thousands of users who trust Bondly for safe anonymous chat with strangers. 
+                Start making meaningful connections today with our secure chat platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="/chat" className="btn btn-primary px-8 py-4 text-lg">

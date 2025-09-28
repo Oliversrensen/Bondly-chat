@@ -16,25 +16,38 @@ const MobileMenu = dynamic(() => import("@/components/MobileMenu"), {
 
 export const metadata = {
   title: {
-    default: "Bondly - Anonymous Chat with Strangers",
-    template: "%s | Bondly"
+    default: "Bondly - Anonymous Chat App | Chat with Strangers & Make Friends",
+    template: "%s | Bondly - Anonymous Chat"
   },
-  description: "Connect with strangers through anonymous chat. Make new friends, have meaningful conversations, and build connections in a safe, anonymous environment.",
+  description: "Join Bondly, the best anonymous chat app to meet new people and make friends. Chat with strangers safely, build meaningful connections, and discover amazing conversations. Start chatting now!",
   keywords: [
-    "anonymous chat",
+    "anonymous chat app",
     "chat with strangers",
-    "online chat",
-    "random chat",
-    "meet new people",
     "anonymous messaging",
-    "stranger chat app",
+    "meet new people online",
+    "random chat app",
+    "stranger chat",
     "online friends",
-    "chat room",
-    "social connection"
+    "chat room app",
+    "social connection app",
+    "bondly chat",
+    "anonymous chat platform",
+    "safe chat app",
+    "meaningful conversations",
+    "chat anonymously",
+    "make friends online",
+    "instant messaging",
+    "chat app for strangers",
+    "anonymous social app",
+    "chat platform",
+    "online chat community"
   ],
   authors: [{ name: "Bondly Team" }],
   creator: "Bondly",
   publisher: "Bondly",
+  applicationName: "Bondly",
+  category: "Social Networking",
+  classification: "Anonymous Chat Application",
   formatDetection: {
     email: false,
     address: false,
@@ -43,45 +56,70 @@ export const metadata = {
   metadataBase: new URL('https://bondly.chat'),
   alternates: {
     canonical: '/',
+    languages: {
+      'en-US': '/',
+    },
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://bondly.chat',
-    siteName: 'Bondly',
-    title: 'Bondly - Anonymous Chat with Strangers',
-    description: 'Connect with strangers through anonymous chat. Make new friends, have meaningful conversations, and build connections in a safe, anonymous environment.',
+    siteName: 'Bondly - Anonymous Chat App',
+    title: 'Bondly - Anonymous Chat App | Chat with Strangers & Make Friends',
+    description: 'Join Bondly, the best anonymous chat app to meet new people and make friends. Chat with strangers safely, build meaningful connections, and discover amazing conversations.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Bondly - Anonymous Chat with Strangers',
+        alt: 'Bondly - Anonymous Chat App with Strangers',
+        type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Bondly - Anonymous Chat with Strangers',
-    description: 'Connect with strangers through anonymous chat. Make new friends, have meaningful conversations, and build connections in a safe, anonymous environment.',
-    images: ['/og-image.png'],
+    site: '@bondly_chat',
     creator: '@bondly_chat',
+    title: 'Bondly - Anonymous Chat App | Chat with Strangers & Make Friends',
+    description: 'Join Bondly, the best anonymous chat app to meet new people and make friends. Chat with strangers safely, build meaningful connections.',
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
     follow: true,
+    nocache: false,
     googleBot: {
       index: true,
       follow: true,
+      noimageindex: false,
       'max-video-preview': -1,
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
   },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    yandex: process.env.YANDEX_VERIFICATION,
+    yahoo: process.env.YAHOO_VERIFICATION,
+  },
   icons: {
-    icon: "/favicon.png",
+    icon: [
+      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.png", sizes: "16x16", type: "image/png" },
+    ],
     shortcut: "/favicon.png",
-    apple: "/favicon.png",
+    apple: [
+      { url: "/favicon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  manifest: "/manifest.json",
+  themeColor: "#FF6B00",
+  colorScheme: "dark",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
   },
 };
 
@@ -103,8 +141,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <div className="relative">
                     <img 
                       src="/logo.svg" 
-                      alt="Bondly logo" 
+                      alt="Bondly - Anonymous Chat App Logo" 
                       className="h-10 w-10 group-hover:scale-110 transition-transform duration-300" 
+                      width="40"
+                      height="40"
                     />
                     <div className="absolute inset-0 bg-primary-500/20 rounded-full blur-lg group-hover:bg-primary-500/30 transition-colors duration-300"></div>
                   </div>
@@ -175,7 +215,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <img src="/logo.svg" alt="Bondly logo" className="h-8 w-8" />
+                  <img src="/logo.svg" alt="Bondly - Anonymous Chat App Logo" className="h-8 w-8" width="32" height="32" />
                   <span className="text-lg font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
                     Bondly
                   </span>
