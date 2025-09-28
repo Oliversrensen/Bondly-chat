@@ -46,15 +46,19 @@ export default async function HomePage({
             {/* Main Heading */}
             <div className="space-y-4">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
-                <span className="block">Anonymous Chat</span>
+                <span className="block">Make</span>
                 <span className="block bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-                  with Strangers
+                  New Friends
+                </span>
+                <span className="block">Build</span>
+                <span className="block bg-gradient-to-r from-secondary-400 to-secondary-600 bg-clip-text text-transparent">
+                  Real Bonds
                 </span>
               </h1>
               
               <p className="text-xl text-dark-300 max-w-3xl mx-auto leading-relaxed">
-                Meet new people, make friends, and have meaningful conversations 
-                in a safe, anonymous environment.
+                Connect with amazing people, start meaningful conversations, 
+                and create friendships that last. Safe, simple, and real.
               </p>
             </div>
 
