@@ -8,7 +8,7 @@ export default function ProPage() {
   async function upgrade() {
     setLoading(true);
     try {
-      const res = await fetch("/api/billing/checkout", { method: "POST" });
+      const res = await fetch("/api/gumroad/checkout", { method: "POST" });
       const { url } = await res.json();
       if (url) {
         window.location.href = url;
