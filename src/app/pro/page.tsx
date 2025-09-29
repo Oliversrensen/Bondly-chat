@@ -158,6 +158,9 @@ export default function ProPage() {
               <p className="text-xs text-dark-500">
                 Cancel anytime • 30-day money-back guarantee
               </p>
+              <p className="text-xs text-dark-400 mt-2">
+                After payment, you'll be redirected back to Bondly automatically
+              </p>
             </div>
             
             <div className="space-y-4">

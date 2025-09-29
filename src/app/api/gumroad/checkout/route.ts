@@ -13,10 +13,9 @@ export async function POST(req: NextRequest) {
       return new NextResponse("Gumroad product ID not configured", { status: 500 });
     }
 
-    // Create Gumroad checkout URL with user email and success redirect
+    // Create Gumroad checkout URL with user email
     const userEmail = session.user?.email || '';
-    const successUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/pro/success`;
-    const checkoutUrl = `https://gumroad.com/l/${productId}?wanted=true&email=${encodeURIComponent(userEmail)}&custom1=${uid}&success_url=${encodeURIComponent(successUrl)}`;
+    const checkoutUrl = `https://gumroad.com/l/${productId}?wanted=true&email=${encodeURIComponent(userEmail)}&custom1=${uid}`;
 
     return NextResponse.json({ url: checkoutUrl });
   } catch (error) {
