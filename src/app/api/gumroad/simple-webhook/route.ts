@@ -3,13 +3,22 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const data = await req.json();
+    // Gumroad sends form-encoded data, not JSON
+    const formData = await req.formData();
+    const data: any = {};
+    
+    // Convert form data to object
+    for (const [key, value] of formData.entries()) {
+      data[key] = value;
+    }
+    
     console.log("=== GUMROAD WEBHOOK DEBUG ===");
     console.log("Webhook received at:", new Date().toISOString());
-    console.log("Full webhook data:", JSON.stringify(data, null, 2));
+    console.log("Raw form data entries:", Array.from(formData.entries()));
+    console.log("Parsed data:", JSON.stringify(data, null, 2));
     console.log("Event type:", data.event_type);
     console.log("Product ID:", data.product_id);
-    console.log("Custom fields:", data.custom_fields);
+    console.log("Custom fields:", data.custom1);
     console.log("=============================");
 
     // Handle different event types
@@ -36,12 +45,14 @@ export async function POST(req: NextRequest) {
 
 async function handleSale(data: any) {
   console.log("=== HANDLING SALE ===");
-  const userId = data.custom_fields?.custom1 || data.custom_fields?.user_id;
+  // Gumroad sends custom1 directly, not nested in custom_fields
+  const userId = data.custom1 || data.user_id;
   console.log("Extracted user ID:", userId);
   
   if (!userId) {
     console.error("❌ No user ID found in Gumroad sale data");
-    console.error("Available custom fields:", data.custom_fields);
+    console.error("Available data keys:", Object.keys(data));
+    console.error("Full data:", data);
     return;
   }
 
@@ -87,7 +98,7 @@ async function handleSale(data: any) {
 }
 
 async function handleRefund(data: any) {
-  const userId = data.custom_fields?.custom1 || data.custom_fields?.user_id;
+  const userId = data.custom1 || data.user_id;
   if (!userId) return;
 
   try {
@@ -110,7 +121,7 @@ async function handleRefund(data: any) {
 }
 
 async function handleDispute(data: any) {
-  const userId = data.custom_fields?.custom1 || data.custom_fields?.user_id;
+  const userId = data.custom1 || data.user_id;
   if (!userId) return;
 
   try {
