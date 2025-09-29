@@ -4,7 +4,13 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
-    console.log("Gumroad webhook received:", data);
+    console.log("=== GUMROAD WEBHOOK DEBUG ===");
+    console.log("Webhook received at:", new Date().toISOString());
+    console.log("Full webhook data:", JSON.stringify(data, null, 2));
+    console.log("Event type:", data.event_type);
+    console.log("Product ID:", data.product_id);
+    console.log("Custom fields:", data.custom_fields);
+    console.log("=============================");
 
     // Handle different event types
     switch (data.event_type) {
@@ -29,15 +35,26 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleSale(data: any) {
+  console.log("=== HANDLING SALE ===");
   const userId = data.custom_fields?.custom1 || data.custom_fields?.user_id;
+  console.log("Extracted user ID:", userId);
+  
   if (!userId) {
-    console.error("No user ID found in Gumroad sale data");
+    console.error("❌ No user ID found in Gumroad sale data");
+    console.error("Available custom fields:", data.custom_fields);
     return;
   }
 
   // Check if this is a subscription product
   const isSubscription = data.product_id === process.env.GUMROAD_PRODUCT_ID;
-  if (!isSubscription) return;
+  console.log("Product ID from webhook:", data.product_id);
+  console.log("Expected product ID:", process.env.GUMROAD_PRODUCT_ID);
+  console.log("Is subscription product:", isSubscription);
+  
+  if (!isSubscription) {
+    console.log("❌ Not a subscription product, skipping");
+    return;
+  }
 
   try {
     // Update user to Pro status
