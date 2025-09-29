@@ -1,28 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.text();
-    const signature = req.headers.get("x-gumroad-signature");
-    
-    // Verify webhook signature if secret is provided
-    if (process.env.GUMROAD_WEBHOOK_SECRET && signature) {
-      const expectedSignature = crypto
-        .createHmac("sha256", process.env.GUMROAD_WEBHOOK_SECRET)
-        .update(body)
-        .digest("hex");
-      
-      if (signature !== expectedSignature) {
-        console.error("Invalid Gumroad webhook signature");
-        return new NextResponse("Invalid signature", { status: 400 });
-      }
-    } else {
-      console.log("Gumroad webhook received without signature verification");
-    }
-
-    const data = JSON.parse(body);
+    const data = await req.json();
     console.log("Gumroad webhook received:", data);
 
     // Handle different event types
