@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
   const isLoggedIn = !!token
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/']
+  const publicRoutes = ['/', '/sitemap.xml', '/robots.txt', '/privacy', '/terms', '/support', '/pro']
   const authRoutes = ['/auth']
   
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname)
