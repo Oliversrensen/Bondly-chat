@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Create Gumroad checkout URL with user email for verification
-    const userEmail = session.user.email;
-    const checkoutUrl = `https://gumroad.com/l/${productId}?wanted=true&email=${encodeURIComponent(userEmail || '')}&custom1=${uid}`;
+    const userEmail = session.user?.email || '';
+    const checkoutUrl = `https://gumroad.com/l/${productId}?wanted=true&email=${encodeURIComponent(userEmail)}&custom1=${uid}`;
 
     return NextResponse.json({ url: checkoutUrl });
   } catch (error) {
