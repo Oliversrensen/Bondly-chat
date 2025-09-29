@@ -352,13 +352,17 @@ io.on("connection", (socket) => {
   });
 
       // Disconnect cleanup
-      socket.on("disconnect", async () => {
+      socket.on("disconnect", async (reason) => {
         const uid = socketUsers.get(socket.id);
+        console.log(`Socket disconnected: ${socket.id}, reason: ${reason}, uid: ${uid}`);
         
         // Notify all rooms this socket was in that the user left
         const rooms = Array.from(socket.rooms);
+        console.log(`Socket ${socket.id} was in rooms:`, rooms);
+        
         for (const roomId of rooms) {
           if (roomId !== socket.id) { // Skip the socket's own room
+            console.log(`Notifying room ${roomId} that user left`);
             socket.to(roomId).emit("ended");
             console.log(`User disconnected from room ${roomId}`);
           }

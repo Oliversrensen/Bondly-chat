@@ -248,37 +248,42 @@ export default function ChatPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       console.log("beforeunload event fired, roomId:", roomId, "connected:", socket.connected);
       
-      // Try synchronous approach first
+      // Force disconnect the WebSocket immediately
       if (socket.connected && roomId) {
-        try {
-          // Use synchronous XMLHttpRequest as a last resort
-          const xhr = new XMLHttpRequest();
-          xhr.open('POST', '/api/chat/leave', false); // synchronous
-          xhr.setRequestHeader('Content-Type', 'application/json');
-          xhr.send(JSON.stringify({ roomId, action: 'leave_room' }));
-        } catch (err) {
-          console.log("Sync request failed, trying async:", err);
-        }
-        
-        // Also try WebSocket
+        console.log("Forcing WebSocket disconnect on beforeunload");
         socket.emit("leave_room", { roomId });
+        socket.disconnect();
       }
       
-      handleLeaveWithBeacon();
+      // Also try sendBeacon as backup
+      if (navigator.sendBeacon) {
+        const data = JSON.stringify({ roomId, action: 'leave_room' });
+        navigator.sendBeacon('/api/chat/leave', data);
+      }
     };
 
     // Handle page hide (more reliable than beforeunload for navigation)
     const handlePageHide = () => {
       console.log("pagehide event fired, roomId:", roomId, "connected:", socket.connected);
-      handleLeaveWithBeacon();
+      
+      // Force disconnect the WebSocket immediately
+      if (socket.connected && roomId) {
+        console.log("Forcing WebSocket disconnect on pagehide");
+        socket.emit("leave_room", { roomId });
+        socket.disconnect();
+      }
+      
+      // Also try sendBeacon as backup
+      if (navigator.sendBeacon) {
+        const data = JSON.stringify({ roomId, action: 'leave_room' });
+        navigator.sendBeacon('/api/chat/leave', data);
+      }
     };
 
-    // Handle page visibility change (tab switching, minimizing, etc.)
+    // Handle page visibility change (only for actual navigation, not tab switching)
     const handleVisibilityChange = () => {
       console.log("visibilitychange event fired, hidden:", document.hidden, "roomId:", roomId, "connected:", socket.connected);
-      if (document.hidden && socket.connected && roomId) {
-        handleLeave();
-      }
+      // Don't trigger on tab switching - only on actual page unload
     };
 
     // Handle back button navigation
@@ -287,15 +292,10 @@ export default function ChatPage() {
       handleLeave();
     };
 
-    // Handle focus loss (when user clicks away from tab)
+    // Handle focus loss (only for actual navigation, not tab switching)
     const handleBlur = () => {
       console.log("window blur event fired, roomId:", roomId, "connected:", socket.connected);
-      // Only trigger if we're actually navigating away, not just switching tabs
-      setTimeout(() => {
-        if (document.hidden && socket.connected && roomId) {
-          handleLeave();
-        }
-      }, 100);
+      // Don't trigger on tab switching - only on actual page unload
     };
 
     // Use multiple event listeners with different strategies
@@ -473,48 +473,6 @@ export default function ChatPage() {
     }
   }
 
-  // Heartbeat-based approach to detect when user is no longer responding
-  useEffect(() => {
-    if (!roomId || !socketRef.current) return;
-
-    const socket = socketRef.current;
-    let lastActivity = Date.now();
-    let heartbeatInterval: NodeJS.Timeout;
-
-    // Update activity timestamp on any user interaction
-    const updateActivity = () => {
-      lastActivity = Date.now();
-    };
-
-    // Listen for user activity
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    events.forEach(event => {
-      document.addEventListener(event, updateActivity, true);
-    });
-
-    // Check if user is still active every 5 seconds
-    heartbeatInterval = setInterval(() => {
-      const now = Date.now();
-      const timeSinceActivity = now - lastActivity;
-      
-      // If no activity for 10 seconds and page is hidden, consider them gone
-      if (timeSinceActivity > 10000 && document.hidden) {
-        console.log("User appears to have left (no activity + hidden page), roomId:", roomId);
-        if (socket.connected && roomId) {
-          socket.emit("leave_room", { roomId });
-        }
-      }
-    }, 5000);
-
-    return () => {
-      events.forEach(event => {
-        document.removeEventListener(event, updateActivity, true);
-      });
-      if (heartbeatInterval) {
-        clearInterval(heartbeatInterval);
-      }
-    };
-  }, [roomId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800">
