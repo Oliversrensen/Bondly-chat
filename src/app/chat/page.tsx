@@ -25,6 +25,8 @@ export default function ChatPage() {
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
   const [lastMode, setLastMode] = useState<"random" | "interest">("random");
+  const [showLeaveNotification, setShowLeaveNotification] = useState(false);
+  const [wasTypingWhenLeft, setWasTypingWhenLeft] = useState(false);
 
   const [genderFilter, setGenderFilter] = useState<"MALE" | "FEMALE" | null>(
     null
@@ -144,9 +146,33 @@ export default function ChatPage() {
     s.on("typing", () => setPartnerTyping(true));
     s.on("stop_typing", () => setPartnerTyping(false));
     s.on("ended", () => {
+      setWasTypingWhenLeft(partnerTyping);
       setChatEnded(true);
       setStatus("Partner left the chat.");
+      setShowLeaveNotification(true);
+      setPartnerTyping(false);
       stopPolling();
+      
+      // Play notification sound
+      try {
+        const audio = new Audio('/notification.mp3');
+        audio.volume = 0.3;
+        audio.play().catch(() => {
+          // Fallback: use Web Audio API for a simple beep
+          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.3);
+        });
+      } catch (error) {
+        console.log('Could not play notification sound:', error);
+      }
     });
 
     // Handle page unload (close tab, navigate away, etc.)
@@ -320,6 +346,9 @@ export default function ChatPage() {
     setMessages([]);
     setPartnerName(null);
     setChatEnded(false);
+    setShowLeaveNotification(false);
+    setWasTypingWhenLeft(false);
+    setPartnerTyping(false);
     stopPolling();
     clearQueueTimeout();
     
@@ -341,6 +370,33 @@ export default function ChatPage() {
             Connect with strangers and make meaningful conversations
           </p>
         </div>
+
+        {/* Leave Notification Banner */}
+        {showLeaveNotification && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl backdrop-blur-sm animate-fade-in-up">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-red-400 font-medium">
+                  {wasTypingWhenLeft ? "Your partner was typing and left the chat" : "Your partner has left the chat"}
+                </p>
+                <p className="text-red-300/70 text-sm">Click "Next Chat" to find someone else</p>
+              </div>
+              <button
+                onClick={() => setShowLeaveNotification(false)}
+                className="text-red-400/70 hover:text-red-400 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col gap-4 sm:gap-6 h-[calc(100vh-8rem)] sm:h-[calc(100vh-12rem)]">
           {/* Modern Controls */}
