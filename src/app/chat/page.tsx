@@ -203,70 +203,80 @@ export default function ChatPage() {
     if (!roomId || !socketRef.current) return;
 
     const socket = socketRef.current;
+    let isNavigating = false;
 
-    // Handle page unload (close tab, navigate away, etc.)
-    const handleBeforeUnload = () => {
-      console.log("beforeunload event fired, roomId:", roomId, "connected:", socket.connected);
+    // Function to handle leaving the room
+    const handleLeave = () => {
+      if (isNavigating) return; // Prevent multiple calls
+      isNavigating = true;
+      console.log("Leaving room:", roomId, "connected:", socket.connected);
+      
+      if (socket.connected && roomId) {
+        socket.emit("leave_room", { roomId });
+        // Give a small delay to ensure the event is sent
+        setTimeout(() => {
+          socket.disconnect();
+        }, 100);
+      }
+    };
+
+    // Fallback using sendBeacon for more reliable delivery
+    const handleLeaveWithBeacon = () => {
+      if (isNavigating) return;
+      isNavigating = true;
+      console.log("Leaving room with beacon:", roomId);
+      
+      // Use sendBeacon as a fallback
+      if (navigator.sendBeacon) {
+        const data = JSON.stringify({ roomId, action: 'leave_room' });
+        navigator.sendBeacon('/api/chat/leave', data);
+      }
+      
       if (socket.connected && roomId) {
         socket.emit("leave_room", { roomId });
         socket.disconnect();
       }
     };
 
+    // Handle page unload (close tab, navigate away, etc.)
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      console.log("beforeunload event fired, roomId:", roomId, "connected:", socket.connected);
+      handleLeaveWithBeacon();
+    };
+
     // Handle page hide (more reliable than beforeunload for navigation)
     const handlePageHide = () => {
       console.log("pagehide event fired, roomId:", roomId, "connected:", socket.connected);
-      if (socket.connected && roomId) {
-        socket.emit("leave_room", { roomId });
-        socket.disconnect();
-      }
+      handleLeaveWithBeacon();
     };
 
     // Handle page visibility change (tab switching, minimizing, etc.)
     const handleVisibilityChange = () => {
       console.log("visibilitychange event fired, hidden:", document.hidden, "roomId:", roomId, "connected:", socket.connected);
       if (document.hidden && socket.connected && roomId) {
-        socket.emit("leave_room", { roomId });
-        socket.disconnect();
+        handleLeave();
       }
     };
 
     // Handle back button navigation
     const handlePopState = () => {
       console.log("popstate event fired, roomId:", roomId, "connected:", socket.connected);
-      if (socket.connected && roomId) {
-        socket.emit("leave_room", { roomId });
-        socket.disconnect();
-      }
+      handleLeave();
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.addEventListener("unload", handlePageHide);
-    window.addEventListener("pagehide", handlePageHide);
-    window.addEventListener("popstate", handlePopState);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    
-    // Also add a more aggressive approach for navigation
-    const handleNavigation = () => {
-      console.log("Navigation detected, roomId:", roomId, "connected:", socket.connected);
-      if (socket.connected && roomId) {
-        socket.emit("leave_room", { roomId });
-        socket.disconnect();
-      }
-    };
-    
-    // Listen for any navigation
-    window.addEventListener("beforeunload", handleNavigation);
-    window.addEventListener("unload", handleNavigation);
+    // Use both beforeunload and unload for maximum coverage
+    window.addEventListener("beforeunload", handleBeforeUnload, { capture: true });
+    window.addEventListener("unload", handlePageHide, { capture: true });
+    window.addEventListener("pagehide", handlePageHide, { capture: true });
+    window.addEventListener("popstate", handlePopState, { capture: true });
+    document.addEventListener("visibilitychange", handleVisibilityChange, { capture: true });
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("unload", handlePageHide);
-      window.removeEventListener("pagehide", handlePageHide);
-      window.removeEventListener("popstate", handlePopState);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleNavigation);
-      window.removeEventListener("unload", handleNavigation);
+      window.removeEventListener("beforeunload", handleBeforeUnload, { capture: true });
+      window.removeEventListener("unload", handlePageHide, { capture: true });
+      window.removeEventListener("pagehide", handlePageHide, { capture: true });
+      window.removeEventListener("popstate", handlePopState, { capture: true });
+      document.removeEventListener("visibilitychange", handleVisibilityChange, { capture: true });
     };
   }, [roomId]);
 
@@ -411,6 +421,14 @@ export default function ChatPage() {
     start(lastMode);
   }
 
+  // Test function to manually trigger leave (for debugging)
+  function testLeave() {
+    console.log("Testing leave manually, roomId:", roomId, "connected:", socketRef.current?.connected);
+    if (roomId && socketRef.current) {
+      socketRef.current.emit("leave_room", { roomId });
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800">
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -526,6 +544,14 @@ export default function ChatPage() {
                     <span className="hidden sm:inline">Report</span>
                     <span className="sm:hidden">!</span>
                   </button>
+                  {roomId && (
+                    <button
+                      className="btn btn-ghost flex items-center gap-1 sm:gap-2 text-dark-300 hover:text-yellow-400 group text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+                      onClick={testLeave}
+                    >
+                      <span className="text-xs">🧪 Test Leave</span>
+                    </button>
+                  )}
                 </div>
               )}
             </div>
