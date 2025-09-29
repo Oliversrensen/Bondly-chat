@@ -3,6 +3,11 @@ import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./prisma";
 
+// Ensure AUTH_SECRET is set
+if (!process.env.AUTH_SECRET) {
+  throw new Error("AUTH_SECRET environment variable is not set");
+}
+
 export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
@@ -20,7 +25,9 @@ export const authConfig: NextAuthConfig = {
           access_type: "offline",
           response_type: "code"
         }
-      }
+      },
+      // Explicitly enable PKCE
+      checks: ["pkce", "state"],
     }),
   ],
   callbacks: {
@@ -29,6 +36,19 @@ export const authConfig: NextAuthConfig = {
   },
   trustHost: true,
   secret: process.env.AUTH_SECRET,
+  // Ensure proper PKCE handling
+  useSecureCookies: process.env.NODE_ENV === "production",
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-authjs.session-token" : "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
