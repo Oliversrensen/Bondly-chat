@@ -16,13 +16,14 @@ export async function POST(req: NextRequest) {
     console.log("Webhook received at:", new Date().toISOString());
     console.log("Raw form data entries:", Array.from(formData.entries()));
     console.log("Parsed data:", JSON.stringify(data, null, 2));
-    console.log("Event type:", data.event_type);
-    console.log("Product ID:", data.product_id);
-    console.log("Custom fields:", data.custom1);
+    console.log("Resource name:", data.resource_name);
+    console.log("Product ID (short):", data.short_product_id);
+    console.log("User ID (custom1):", data['url_params[custom1]']);
+    console.log("Is test:", data.test);
     console.log("=============================");
 
-    // Handle different event types
-    switch (data.event_type) {
+    // Handle different event types based on resource_name
+    switch (data.resource_name) {
       case "sale":
         await handleSale(data);
         break;
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
         await handleDispute(data);
         break;
       default:
-        console.log("Unhandled Gumroad event type:", data.event_type);
+        console.log("Unhandled Gumroad resource type:", data.resource_name);
     }
 
     return new NextResponse("OK", { status: 200 });
@@ -45,8 +46,8 @@ export async function POST(req: NextRequest) {
 
 async function handleSale(data: any) {
   console.log("=== HANDLING SALE ===");
-  // Gumroad sends custom1 directly, not nested in custom_fields
-  const userId = data.custom1 || data.user_id;
+  // User ID is in url_params[custom1]
+  const userId = data['url_params[custom1]'];
   console.log("Extracted user ID:", userId);
   
   if (!userId) {
@@ -56,9 +57,9 @@ async function handleSale(data: any) {
     return;
   }
 
-  // Check if this is a subscription product
-  const isSubscription = data.product_id === process.env.GUMROAD_PRODUCT_ID;
-  console.log("Product ID from webhook:", data.product_id);
+  // Check if this is a subscription product using short_product_id
+  const isSubscription = data.short_product_id === process.env.GUMROAD_PRODUCT_ID;
+  console.log("Product ID from webhook:", data.short_product_id);
   console.log("Expected product ID:", process.env.GUMROAD_PRODUCT_ID);
   console.log("Is subscription product:", isSubscription);
   
@@ -98,7 +99,7 @@ async function handleSale(data: any) {
 }
 
 async function handleRefund(data: any) {
-  const userId = data.custom1 || data.user_id;
+  const userId = data['url_params[custom1]'];
   if (!userId) return;
 
   try {
@@ -121,7 +122,7 @@ async function handleRefund(data: any) {
 }
 
 async function handleDispute(data: any) {
-  const userId = data.custom1 || data.user_id;
+  const userId = data['url_params[custom1]'];
   if (!userId) return;
 
   try {
