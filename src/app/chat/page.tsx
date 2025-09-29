@@ -183,6 +183,14 @@ export default function ChatPage() {
       }
     };
 
+    // Handle page hide (more reliable than beforeunload for navigation)
+    const handlePageHide = () => {
+      if (s.connected && roomId) {
+        s.emit("leave_room", { roomId });
+        s.disconnect();
+      }
+    };
+
     // Handle page visibility change (tab switching, minimizing, etc.)
     const handleVisibilityChange = () => {
       if (document.hidden && s.connected && roomId) {
@@ -191,12 +199,28 @@ export default function ChatPage() {
       }
     };
 
+    // Handle back button navigation
+    const handlePopState = () => {
+      if (s.connected && roomId) {
+        s.emit("leave_room", { roomId });
+        s.disconnect();
+      }
+    };
+
     window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("popstate", handlePopState);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("popstate", handlePopState);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      // Ensure we notify the other user before disconnecting
+      if (s.connected && roomId) {
+        s.emit("leave_room", { roomId });
+      }
       s.disconnect();
     };
   }, [session?.user?.id]);
