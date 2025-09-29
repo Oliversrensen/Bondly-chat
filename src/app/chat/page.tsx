@@ -175,48 +175,7 @@ export default function ChatPage() {
       }
     });
 
-    // Handle page unload (close tab, navigate away, etc.)
-    const handleBeforeUnload = () => {
-      if (s.connected && roomId) {
-        s.emit("leave_room", { roomId });
-        s.disconnect();
-      }
-    };
-
-    // Handle page hide (more reliable than beforeunload for navigation)
-    const handlePageHide = () => {
-      if (s.connected && roomId) {
-        s.emit("leave_room", { roomId });
-        s.disconnect();
-      }
-    };
-
-    // Handle page visibility change (tab switching, minimizing, etc.)
-    const handleVisibilityChange = () => {
-      if (document.hidden && s.connected && roomId) {
-        s.emit("leave_room", { roomId });
-        s.disconnect();
-      }
-    };
-
-    // Handle back button navigation
-    const handlePopState = () => {
-      if (s.connected && roomId) {
-        s.emit("leave_room", { roomId });
-        s.disconnect();
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.addEventListener("pagehide", handlePageHide);
-    window.addEventListener("popstate", handlePopState);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("pagehide", handlePageHide);
-      window.removeEventListener("popstate", handlePopState);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
       // Ensure we notify the other user before disconnecting
       if (s.connected && roomId) {
         s.emit("leave_room", { roomId });
@@ -237,6 +196,78 @@ export default function ChatPage() {
       // Scroll to bottom when joining a new room
       setTimeout(scrollToBottom, 100);
     }
+  }, [roomId]);
+
+  // Handle navigation events when we have an active room
+  useEffect(() => {
+    if (!roomId || !socketRef.current) return;
+
+    const socket = socketRef.current;
+
+    // Handle page unload (close tab, navigate away, etc.)
+    const handleBeforeUnload = () => {
+      console.log("beforeunload event fired, roomId:", roomId, "connected:", socket.connected);
+      if (socket.connected && roomId) {
+        socket.emit("leave_room", { roomId });
+        socket.disconnect();
+      }
+    };
+
+    // Handle page hide (more reliable than beforeunload for navigation)
+    const handlePageHide = () => {
+      console.log("pagehide event fired, roomId:", roomId, "connected:", socket.connected);
+      if (socket.connected && roomId) {
+        socket.emit("leave_room", { roomId });
+        socket.disconnect();
+      }
+    };
+
+    // Handle page visibility change (tab switching, minimizing, etc.)
+    const handleVisibilityChange = () => {
+      console.log("visibilitychange event fired, hidden:", document.hidden, "roomId:", roomId, "connected:", socket.connected);
+      if (document.hidden && socket.connected && roomId) {
+        socket.emit("leave_room", { roomId });
+        socket.disconnect();
+      }
+    };
+
+    // Handle back button navigation
+    const handlePopState = () => {
+      console.log("popstate event fired, roomId:", roomId, "connected:", socket.connected);
+      if (socket.connected && roomId) {
+        socket.emit("leave_room", { roomId });
+        socket.disconnect();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("unload", handlePageHide);
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("popstate", handlePopState);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    // Also add a more aggressive approach for navigation
+    const handleNavigation = () => {
+      console.log("Navigation detected, roomId:", roomId, "connected:", socket.connected);
+      if (socket.connected && roomId) {
+        socket.emit("leave_room", { roomId });
+        socket.disconnect();
+      }
+    };
+    
+    // Listen for any navigation
+    window.addEventListener("beforeunload", handleNavigation);
+    window.addEventListener("unload", handleNavigation);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("unload", handlePageHide);
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("popstate", handlePopState);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleNavigation);
+      window.removeEventListener("unload", handleNavigation);
+    };
   }, [roomId]);
 
   useEffect(() => {
