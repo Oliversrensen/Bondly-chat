@@ -238,9 +238,32 @@ export default function ChatPage() {
       }
     };
 
+    // More aggressive approach - use multiple event types
+    const handleNavigation = () => {
+      console.log("Navigation detected via multiple events, roomId:", roomId);
+      handleLeaveWithBeacon();
+    };
+
     // Handle page unload (close tab, navigate away, etc.)
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       console.log("beforeunload event fired, roomId:", roomId, "connected:", socket.connected);
+      
+      // Try synchronous approach first
+      if (socket.connected && roomId) {
+        try {
+          // Use synchronous XMLHttpRequest as a last resort
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', '/api/chat/leave', false); // synchronous
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.send(JSON.stringify({ roomId, action: 'leave_room' }));
+        } catch (err) {
+          console.log("Sync request failed, trying async:", err);
+        }
+        
+        // Also try WebSocket
+        socket.emit("leave_room", { roomId });
+      }
+      
       handleLeaveWithBeacon();
     };
 
@@ -264,19 +287,40 @@ export default function ChatPage() {
       handleLeave();
     };
 
-    // Use both beforeunload and unload for maximum coverage
+    // Handle focus loss (when user clicks away from tab)
+    const handleBlur = () => {
+      console.log("window blur event fired, roomId:", roomId, "connected:", socket.connected);
+      // Only trigger if we're actually navigating away, not just switching tabs
+      setTimeout(() => {
+        if (document.hidden && socket.connected && roomId) {
+          handleLeave();
+        }
+      }, 100);
+    };
+
+    // Use multiple event listeners with different strategies
     window.addEventListener("beforeunload", handleBeforeUnload, { capture: true });
     window.addEventListener("unload", handlePageHide, { capture: true });
     window.addEventListener("pagehide", handlePageHide, { capture: true });
     window.addEventListener("popstate", handlePopState, { capture: true });
+    window.addEventListener("blur", handleBlur, { capture: true });
     document.addEventListener("visibilitychange", handleVisibilityChange, { capture: true });
+    
+    // Also try the old way without capture
+    window.addEventListener("beforeunload", handleNavigation);
+    window.addEventListener("unload", handleNavigation);
+    window.addEventListener("pagehide", handleNavigation);
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload, { capture: true });
       window.removeEventListener("unload", handlePageHide, { capture: true });
       window.removeEventListener("pagehide", handlePageHide, { capture: true });
       window.removeEventListener("popstate", handlePopState, { capture: true });
+      window.removeEventListener("blur", handleBlur, { capture: true });
       document.removeEventListener("visibilitychange", handleVisibilityChange, { capture: true });
+      window.removeEventListener("beforeunload", handleNavigation);
+      window.removeEventListener("unload", handleNavigation);
+      window.removeEventListener("pagehide", handleNavigation);
     };
   }, [roomId]);
 
@@ -428,6 +472,49 @@ export default function ChatPage() {
       socketRef.current.emit("leave_room", { roomId });
     }
   }
+
+  // Heartbeat-based approach to detect when user is no longer responding
+  useEffect(() => {
+    if (!roomId || !socketRef.current) return;
+
+    const socket = socketRef.current;
+    let lastActivity = Date.now();
+    let heartbeatInterval: NodeJS.Timeout;
+
+    // Update activity timestamp on any user interaction
+    const updateActivity = () => {
+      lastActivity = Date.now();
+    };
+
+    // Listen for user activity
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => {
+      document.addEventListener(event, updateActivity, true);
+    });
+
+    // Check if user is still active every 5 seconds
+    heartbeatInterval = setInterval(() => {
+      const now = Date.now();
+      const timeSinceActivity = now - lastActivity;
+      
+      // If no activity for 10 seconds and page is hidden, consider them gone
+      if (timeSinceActivity > 10000 && document.hidden) {
+        console.log("User appears to have left (no activity + hidden page), roomId:", roomId);
+        if (socket.connected && roomId) {
+          socket.emit("leave_room", { roomId });
+        }
+      }
+    }, 5000);
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, updateActivity, true);
+      });
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+      }
+    };
+  }, [roomId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800">
