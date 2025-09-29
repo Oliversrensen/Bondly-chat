@@ -248,10 +248,10 @@ export default function ChatPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       console.log("beforeunload event fired, roomId:", roomId, "connected:", socket.connected);
       
-      // Force disconnect the WebSocket immediately
-      if (socket.connected && roomId) {
-        console.log("Forcing WebSocket disconnect on beforeunload");
-        socket.emit("leave_room", { roomId });
+      // Don't emit leave_room - let the disconnect event handle it
+      // Just disconnect the WebSocket and let the server detect it
+      if (socket.connected) {
+        console.log("Disconnecting WebSocket on beforeunload");
         socket.disconnect();
       }
       
@@ -266,10 +266,10 @@ export default function ChatPage() {
     const handlePageHide = () => {
       console.log("pagehide event fired, roomId:", roomId, "connected:", socket.connected);
       
-      // Force disconnect the WebSocket immediately
-      if (socket.connected && roomId) {
-        console.log("Forcing WebSocket disconnect on pagehide");
-        socket.emit("leave_room", { roomId });
+      // Don't emit leave_room - let the disconnect event handle it
+      // Just disconnect the WebSocket and let the server detect it
+      if (socket.connected) {
+        console.log("Disconnecting WebSocket on pagehide");
         socket.disconnect();
       }
       

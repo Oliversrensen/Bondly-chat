@@ -175,6 +175,8 @@ const io = new Server(httpServer, { cors: { origin: "*" } });
 
 // Track socket → userId
 const socketUsers = new Map();
+// Track socket → rooms for disconnect notifications
+const socketRooms = new Map();
 
 const QKEYS = ["queue:random", "queue:interest"];
 const PENDING = (u) => `match:pending:${u}`;
@@ -259,6 +261,13 @@ io.on("connection", (socket) => {
   socket.on("join_room", ({ roomId }) => {
     if (!roomId) return;
     socket.join(roomId);
+    
+    // Track the room for this socket
+    if (!socketRooms.has(socket.id)) {
+      socketRooms.set(socket.id, new Set());
+    }
+    socketRooms.get(socket.id).add(roomId);
+    
     console.log(`Socket ${socket.id} joined room ${roomId}`);
   });
 
@@ -345,6 +354,12 @@ io.on("connection", (socket) => {
   socket.on("leave_room", async ({ roomId }) => {
     if (!roomId) return;
     socket.leave(roomId);
+    
+    // Remove from room tracking
+    if (socketRooms.has(socket.id)) {
+      socketRooms.get(socket.id).delete(roomId);
+    }
+    
     socket.to(roomId).emit("ended");
     const uid = socketUsers.get(socket.id);
     await cleanupUser(uid);
@@ -356,16 +371,15 @@ io.on("connection", (socket) => {
         const uid = socketUsers.get(socket.id);
         console.log(`Socket disconnected: ${socket.id}, reason: ${reason}, uid: ${uid}`);
         
-        // Notify all rooms this socket was in that the user left
-        const rooms = Array.from(socket.rooms);
-        console.log(`Socket ${socket.id} was in rooms:`, rooms);
+        // Use tracked rooms instead of socket.rooms (which might be empty)
+        const trackedRooms = socketRooms.get(socket.id) || new Set();
+        console.log(`Socket ${socket.id} was in tracked rooms:`, Array.from(trackedRooms));
         
-        for (const roomId of rooms) {
-          if (roomId !== socket.id) { // Skip the socket's own room
-            console.log(`Notifying room ${roomId} that user left`);
-            socket.to(roomId).emit("ended");
-            console.log(`User disconnected from room ${roomId}`);
-          }
+        // Notify all tracked rooms that the user left
+        for (const roomId of trackedRooms) {
+          console.log(`Notifying room ${roomId} that user left`);
+          socket.to(roomId).emit("ended");
+          console.log(`User disconnected from room ${roomId}`);
         }
         
         if (uid) {
@@ -382,6 +396,10 @@ io.on("connection", (socket) => {
             console.error("Error removing from active tracking:", err);
           }
         }
+        
+        // Clean up room tracking
+        socketRooms.delete(socket.id);
+        
         connectionCount--;
         console.log("Socket disconnected:", socket.id);
       });
