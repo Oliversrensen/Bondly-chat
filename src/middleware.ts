@@ -10,11 +10,17 @@ export function middleware(request: NextRequest) {
   const publicRoutes = ['/', '/sitemap.xml', '/robots.txt', '/privacy', '/terms', '/support', '/pro']
   const authRoutes = ['/auth']
   
+  // API routes that should be public (webhooks, health checks, etc.)
+  const publicApiRoutes = ['/api/gumroad/webhook', '/api/gumroad/simple-webhook', '/api/health', '/api/interests']
+  
+  // Check if this is a public API route
+  const isPublicApiRoute = publicApiRoutes.some(route => nextUrl.pathname.startsWith(route))
+  
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname)
   const isAuthRoute = authRoutes.some(route => nextUrl.pathname.startsWith(route))
   
-  // Allow access to public routes
-  if (isPublicRoute) {
+  // Allow access to public routes and public API routes
+  if (isPublicRoute || isPublicApiRoute) {
     return NextResponse.next()
   }
   
