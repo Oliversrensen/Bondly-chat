@@ -358,15 +358,8 @@ io.on("connection", (socket) => {
   });
 
   // --- Friend messaging handlers ---
-  socket.on("ping", (data) => {
-    console.log(`Ping received from socket ${socket.id}:`, data);
-    socket.emit("pong", "friend_chat_ack");
-  });
-
   socket.on("join_friend_chat", ({ friendId, myId }) => {
     if (!friendId || !myId) return;
-    
-    console.log(`join_friend_chat received: friendId=${friendId}, myId=${myId}`);
     
     // Join a room specific to this friend pair
     const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
@@ -379,8 +372,6 @@ io.on("connection", (socket) => {
     socketRooms.get(socket.id).add(friendRoom);
     
     console.log(`User ${myId} joined friend chat room ${friendRoom}`);
-    console.log(`Total rooms: ${io.sockets.adapter.rooms.size}`);
-    console.log(`Room ${friendRoom} now has ${io.sockets.adapter.rooms.get(friendRoom)?.size || 0} sockets`);
   });
 
   socket.on("send_friend_message", async ({ friendId, message }) => {
@@ -389,11 +380,8 @@ io.on("connection", (socket) => {
     const myId = socketUsers.get(socket.id);
     if (!myId) return;
 
-    console.log(`Received friend message from ${myId} to ${friendId}:`, message.text);
-
     // Rate limiting for friend messages
     if (await isRateLimited(myId)) {
-      console.log(`Rate limited friend message from ${myId}`);
       return;
     }
 
@@ -403,9 +391,6 @@ io.on("connection", (socket) => {
 
     // Get the friend room
     const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
-    
-    console.log(`Broadcasting friend message from ${myId} to room ${friendRoom}:`, message.text);
-    console.log(`Room ${friendRoom} has ${io.sockets.adapter.rooms.get(friendRoom)?.size || 0} sockets`);
     
     // Emit to all sockets in the friend room
     io.to(friendRoom).emit("friend_message", message);

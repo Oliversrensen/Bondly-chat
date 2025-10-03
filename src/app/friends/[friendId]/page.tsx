@@ -127,11 +127,7 @@ export default function FriendChatPage() {
 
     socket.on("connect", () => {
       console.log("Connected to friend chat socket");
-      console.log("Joining friend chat room for:", { friendId, myId });
       socket.emit("join_friend_chat", { friendId, myId });
-      
-      // Test the connection by sending a ping
-      socket.emit("ping", "friend_chat_test");
     });
 
     socket.on("friend_message", (message: FriendMessage) => {
@@ -161,9 +157,6 @@ export default function FriendChatPage() {
       console.error("WebSocket error:", error);
     });
 
-    socket.on("pong", (data) => {
-      console.log("Pong received from server:", data);
-    });
 
     return () => {
       socket.disconnect();
@@ -192,7 +185,6 @@ export default function FriendChatPage() {
         
         // Emit to socket for real-time delivery
         if (socketRef.current) {
-          console.log("Sending friend message via socket:", { friendId, message: messageData.message });
           socketRef.current.emit("send_friend_message", {
             friendId,
             message: messageData.message
