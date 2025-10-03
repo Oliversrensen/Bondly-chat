@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { Send, Sparkles, Shuffle, SkipForward, Flag } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useToast } from "@/components/Toast";
+import { MessageSkeleton, ChatControlsSkeleton } from "@/components/Skeleton";
 
 type ChatMessage = {
   text: string;
@@ -15,6 +17,7 @@ type ChatMessage = {
 export default function ChatPage() {
   const { data: session } = useSession();
   const myId = session?.user?.id;
+  const { addToast } = useToast();
 
   const [roomId, setRoomId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -148,6 +151,13 @@ export default function ChatPage() {
       setShowLeaveNotification(true);
       setPartnerTyping(false);
       stopPolling();
+      
+      addToast({
+        type: 'info',
+        title: 'Partner Left',
+        message: 'Your chat partner has disconnected.',
+        duration: 4000
+      });
       
       // Play notification sound
       try {
@@ -350,6 +360,12 @@ export default function ChatPage() {
       setStatus(`Matched with ${data.partnerName ?? "Anonymous"}, say hi!`);
       setRoomId(data.roomId);
       stopPolling();
+      addToast({
+        type: 'success',
+        title: 'Match Found!',
+        message: `You've been matched with ${data.partnerName ?? "Anonymous"}`,
+        duration: 3000
+      });
     } else if (data.queued) {
       setStatus("Waiting in queue…");
 
@@ -358,6 +374,12 @@ export default function ChatPage() {
         setTimedOut(true);
         setStatus("No match found. Try again?");
         stopPolling();
+        addToast({
+          type: 'warning',
+          title: 'No Match Found',
+          message: 'No one was available to chat. Try again?',
+          duration: 5000
+        });
         fetch("/api/match/leave", { method: "POST", credentials: "include" }).catch(
           () => {}
         );
@@ -419,14 +441,27 @@ export default function ChatPage() {
       reason: "User report from chat UI",
       messages,
     };
-    await fetch("/api/report", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    
-    
-    alert("Report submitted. Thank you for helping keep Kindred safe.");
+    try {
+      await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      
+      addToast({
+        type: 'success',
+        title: 'Report Submitted',
+        message: 'Thank you for helping keep Bondly safe.',
+        duration: 4000
+      });
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Report Failed',
+        message: 'Unable to submit report. Please try again.',
+        duration: 4000
+      });
+    }
   }
 
   function nextChat() {
@@ -491,33 +526,33 @@ export default function ChatPage() {
           </div>
         )}
 
-        <div className="flex flex-col gap-4 sm:gap-6 h-[calc(100vh-8rem)] sm:h-[calc(100vh-12rem)]">
+        <div className="flex flex-col gap-3 sm:gap-4 md:gap-6 h-[calc(100vh-6rem)] sm:h-[calc(100vh-8rem)] md:h-[calc(100vh-12rem)]">
           {/* Modern Controls */}
           <div className="card card-elevated">
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
               {/* Matching Controls */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <button
-                  className="btn btn-primary flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-3 group"
+                  className="btn btn-primary flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-3 group flex-1 sm:flex-none min-w-0"
                   onClick={() => start("random")}
                   disabled={finding || !!roomId}
                 >
-                  <Shuffle className="h-3 w-3 sm:h-4 sm:w-4 group-hover:rotate-180 transition-transform duration-300" /> 
+                  <Shuffle className="h-3 w-3 sm:h-4 sm:w-4 group-hover:rotate-180 transition-transform duration-300 flex-shrink-0" /> 
                   <span className="hidden sm:inline">Random Match</span>
                   <span className="sm:hidden">Random</span>
                 </button>
                 <button
-                  className="btn btn-secondary flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-3 group"
+                  className="btn btn-secondary flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-3 group flex-1 sm:flex-none min-w-0"
                   onClick={() => start("interest")}
                   disabled={finding || !!roomId}
                 >
-                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform duration-300" /> 
+                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" /> 
                   <span className="hidden sm:inline">By Interests</span>
                   <span className="sm:hidden">Interests</span>
                 </button>
                 
                 {/* Gender Filter */}
-                <div className="gender-toggle">
+                <div className="gender-toggle w-full sm:w-auto">
                   {(["MALE", null, "FEMALE"] as const).map((option, idx) => {
                     const label =
                       option === "MALE"
@@ -529,7 +564,7 @@ export default function ChatPage() {
                     return (
                       <button
                         key={label}
-                        className={`px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                        className={`px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-200 flex-1 ${
                           isActive
                             ? "active"
                             : "text-dark-300 hover:text-dark-100"
@@ -547,22 +582,22 @@ export default function ChatPage() {
 
               {/* Chat Actions */}
               {roomId && (
-                <div className="flex items-center gap-1 sm:gap-2">
+                <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-end sm:justify-start">
                   <button
-                    className="btn btn-ghost flex items-center gap-1 sm:gap-2 text-dark-300 hover:text-primary-400 group text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+                    className="btn btn-ghost flex items-center gap-1 sm:gap-2 text-dark-300 hover:text-primary-400 group text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 flex-1 sm:flex-none"
                     onClick={nextChat}
                   >
-                    <SkipForward className="h-3 w-3 sm:h-4 sm:w-4 group-hover:translate-x-1 transition-transform duration-200" /> 
+                    <SkipForward className="h-3 w-3 sm:h-4 sm:w-4 group-hover:translate-x-1 transition-transform duration-200 flex-shrink-0" /> 
                     <span className="hidden sm:inline">Next Chat</span>
                     <span className="sm:hidden">Next</span>
                   </button>
                   <button
-                    className="btn btn-ghost flex items-center gap-1 sm:gap-2 text-dark-300 hover:text-red-400 group text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+                    className="btn btn-ghost flex items-center gap-1 sm:gap-2 text-dark-300 hover:text-red-400 group text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 flex-1 sm:flex-none"
                     onClick={reportUser}
                   >
-                    <Flag className="h-3 w-3 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform duration-200" /> 
+                    <Flag className="h-3 w-3 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform duration-200 flex-shrink-0" /> 
                     <span className="hidden sm:inline">Report</span>
-                    <span className="sm:hidden">!</span>
+                    <span className="sm:hidden">Report</span>
                   </button>
                 </div>
               )}
@@ -622,17 +657,21 @@ export default function ChatPage() {
             </div>
 
             {/* Messages Container */}
-            <div ref={scrollRef} className="flex-1 p-4 sm:p-6 min-h-0 overflow-y-auto">
+            <div ref={scrollRef} className="flex-1 p-3 sm:p-4 md:p-6 min-h-0 overflow-y-auto">
               {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center min-h-[200px] sm:min-h-[300px] text-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-full flex items-center justify-center mb-4">
-                    <svg className="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
+                finding || (pollRef.current && !roomId && !timedOut) ? (
+                  <MessageSkeleton />
+                ) : (
+                  <div className="flex flex-col items-center justify-center min-h-[200px] sm:min-h-[300px] text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-full flex items-center justify-center mb-4">
+                      <svg className="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </div>
+                    <p className="text-dark-400 text-lg font-medium mb-2">No messages yet</p>
+                    <p className="text-dark-500 text-sm">Start the conversation and make a new friend!</p>
                   </div>
-                  <p className="text-dark-400 text-lg font-medium mb-2">No messages yet</p>
-                  <p className="text-dark-500 text-sm">Start the conversation and make a new friend!</p>
-                </div>
+                )
               ) : (
                 <div className="space-y-4">
                   {messages.map((m, i) => {
@@ -640,9 +679,10 @@ export default function ChatPage() {
                     return (
                       <div
                         key={i}
-                        className={`flex ${mine ? "justify-end" : "justify-start"} animate-fade-in-up`}
+                        className={`flex ${mine ? "justify-end" : "justify-start"} animate-slide-in-up`}
+                        style={{ animationDelay: `${i * 0.1}s` }}
                       >
-                        <div className={`message-bubble ${mine ? "own" : "other"} max-w-[280px] sm:max-w-xs`}>
+                        <div className={`message-bubble ${mine ? "own" : "other"} max-w-[85%] sm:max-w-xs`}>
                           <div className="flex items-start justify-between mb-2 gap-2">
                             <span className="text-xs font-semibold text-white flex-shrink-0">
                               {mine ? myDisplayName : (m.sillyName && m.sillyName !== "Anonymous" ? m.sillyName : "Anonymous")}
@@ -724,7 +764,7 @@ export default function ChatPage() {
                 />
               </div>
               <button
-                className="btn btn-primary p-2 sm:p-3 group"
+                className="btn btn-primary p-2 sm:p-3 group flex-shrink-0"
                 onClick={send}
                 disabled={!roomId || !text.trim() || chatEnded}
               >
