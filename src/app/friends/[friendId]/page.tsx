@@ -48,12 +48,17 @@ export default function FriendChatPage() {
   const [lastMessageCount, setLastMessageCount] = useState(0);
   
   const socketRef = useRef<Socket | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Scroll to bottom when new messages arrive
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
   };
 
   useEffect(() => {
@@ -270,7 +275,7 @@ export default function FriendChatPage() {
 
       {/* Messages */}
       <div className="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
             <div className="text-center py-12">
               <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -310,7 +315,6 @@ export default function FriendChatPage() {
               );
             })
           )}
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Message Input */}
