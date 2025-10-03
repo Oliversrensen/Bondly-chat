@@ -54,7 +54,7 @@ export function useToast() {
 
 function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast: (id: string) => void }) {
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
+    <div className="fixed top-4 right-4 z-50 space-y-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)]">
       {toasts.map(toast => (
         <ToastItem key={toast.id} toast={toast} onRemove={removeToast} />
       ))}
@@ -77,7 +77,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
   };
 
   const getToastStyles = () => {
-    const baseStyles = "max-w-sm w-full bg-dark-800/95 backdrop-blur-sm border rounded-xl shadow-lg transform transition-all duration-300 ease-in-out";
+    const baseStyles = "w-full bg-dark-800/95 backdrop-blur-sm border rounded-xl shadow-lg transform transition-all duration-300 ease-in-out";
     const visibilityStyles = isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0";
 
     switch (toast.type) {
@@ -126,23 +126,23 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
   return (
     <div className={getToastStyles()}>
       <div className="p-4">
-        <div className="flex items-start">
+        <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
             {getIcon()}
           </div>
-          <div className="ml-3 w-0 flex-1">
-            <p className="text-sm font-medium text-dark-100">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-dark-100 break-words">
               {toast.title}
             </p>
             {toast.message && (
-              <p className="mt-1 text-sm text-dark-300">
+              <p className="mt-1 text-sm text-dark-300 break-words">
                 {toast.message}
               </p>
             )}
           </div>
-          <div className="ml-4 flex-shrink-0 flex">
+          <div className="flex-shrink-0">
             <button
-              className="inline-flex text-dark-400 hover:text-dark-200 focus:outline-none focus:text-dark-200 transition-colors duration-200"
+              className="inline-flex text-dark-400 hover:text-dark-200 focus:outline-none focus:text-dark-200 transition-colors duration-200 p-1"
               onClick={handleRemove}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

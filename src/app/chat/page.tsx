@@ -360,6 +360,7 @@ export default function ChatPage() {
       setStatus(`Matched with ${data.partnerName ?? "Anonymous"}, say hi!`);
       setRoomId(data.roomId);
       stopPolling();
+      clearQueueTimeout(); // Clear any pending timeout
       addToast({
         type: 'success',
         title: 'Match Found!',
@@ -400,7 +401,12 @@ export default function ChatPage() {
             );
             setRoomId(data.roomId);
             stopPolling();
-            
+            addToast({
+              type: 'success',
+              title: 'Match Found!',
+              message: `You've been matched with ${data.partnerName ?? "Anonymous"}`,
+              duration: 3000
+            });
           }
         }, 3000);
       }
