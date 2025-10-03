@@ -373,7 +373,9 @@ io.on("connection", (socket) => {
     }
     
     // Join a room specific to this friend pair
-    const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
+    // Sort the IDs to ensure consistent room naming regardless of who joins first
+    const sortedIds = [myId, friendId].sort();
+    const friendRoom = `friend_${sortedIds[0]}_${sortedIds[1]}`;
     socket.join(friendRoom);
     
     // Track the room for this socket
@@ -400,8 +402,9 @@ io.on("connection", (socket) => {
     const cleanText = sanitizeMessage(message.text);
     message.text = cleanText;
 
-    // Get the friend room
-    const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
+    // Get the friend room (same logic as join_friend_chat)
+    const sortedIds = [myId, friendId].sort();
+    const friendRoom = `friend_${sortedIds[0]}_${sortedIds[1]}`;
     
     // Emit to all sockets in the friend room
     io.to(friendRoom).emit("friend_message", message);
@@ -413,8 +416,9 @@ io.on("connection", (socket) => {
     const myId = socketUsers.get(socket.id);
     if (!myId) return;
 
-    // Get the friend room
-    const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
+    // Get the friend room (same logic as join_friend_chat)
+    const sortedIds = [myId, friendId].sort();
+    const friendRoom = `friend_${sortedIds[0]}_${sortedIds[1]}`;
     
     // Emit typing status to other users in the room
     socket.to(friendRoom).emit("friend_typing", { 
