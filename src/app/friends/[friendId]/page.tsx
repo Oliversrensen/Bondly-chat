@@ -169,6 +169,15 @@ export default function FriendChatPage() {
       console.log("🔌 WebSocket disconnected:", reason);
     });
 
+    socket.on("reconnect", (attemptNumber) => {
+      console.log("🔄 WebSocket reconnected after", attemptNumber, "attempts");
+      // Rejoin the friend chat room after reconnection
+      if (friendId && myId) {
+        console.log("🔄 Rejoining friend chat room after reconnection");
+        socket.emit("join_friend_chat", { friendId, myId });
+      }
+    });
+
 
     return () => {
       socket.disconnect();
@@ -198,10 +207,15 @@ export default function FriendChatPage() {
         // Emit to socket for real-time delivery
         if (socketRef.current) {
           console.log("Sending friend message via socket:", { friendId, message: messageData.message });
+          console.log("Socket connected:", socketRef.current.connected);
+          console.log("Socket ID:", socketRef.current.id);
+          
           socketRef.current.emit("send_friend_message", {
             friendId,
             message: messageData.message
           });
+          
+          console.log("Message emitted successfully");
         } else {
           console.error("Socket not available for sending message");
         }
