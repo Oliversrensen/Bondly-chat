@@ -118,7 +118,7 @@ export default function FriendChatPage() {
     console.log("Setting up WebSocket connection with:", { myId, friendId, sessionLoaded: !!session });
 
     const wsUrl = process.env.NODE_ENV === 'production' 
-      ? process.env.NEXT_PUBLIC_WS_URL || "wss://bondly-websocket.onrender.com"
+      ? (process.env.NEXT_PUBLIC_WS_URL || "wss://bondly-websocket.onrender.com").replace(/^https?:\/\//, 'wss://')
       : "ws://localhost:3001";
     
     console.log("🔗 Connecting to WebSocket URL:", wsUrl);
