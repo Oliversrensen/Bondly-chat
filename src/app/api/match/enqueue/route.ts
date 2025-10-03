@@ -34,7 +34,7 @@ function normalizeFilter(
 
 // Notify both users of the match
 async function notifyPair(uidA: string, uidB: string, roomId: string) {
-  console.log("notifyPair", uidA, uidB, "->", roomId);
+  // Notifying pair of match
   try {
     await redis.set(PENDING(uidA), roomId, "EX", 120);
   } catch (err) {
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   const myFilter: "MALE" | "FEMALE" | "ANY" =
     me?.isPro && genderFilter ? normalizeFilter(genderFilter) : "ANY";
 
-  console.log("ENQUEUE", uid, "mode:", mode, "myGender:", myGender, "myFilter:", myFilter);
+  // User enqueued for matching
 
   // Set presence TTL
   const presenceTtl = Number(process.env.PRESENCE_TTL ?? 90);
@@ -82,19 +82,19 @@ export async function POST(req: NextRequest) {
 
       const alive = await redis.exists(`queue:random:user:${other}`);
       if (!alive) {
-        console.log("Stale candidate", other, "expired TTL");
+        // Stale candidate expired
         continue;
       }
 
       if (other === uid && !SELF_MATCH_DEV) {
-        console.log("Skip self popped entry");
+        // Skip self popped entry
         continue;
       }
 
       const result = await redis.pipeline().exists(PRESENCE(other)).exec();
       const live = result?.[0]?.[1];
       if (live !== 1) {
-        console.log("Candidate offline", other);
+        // Candidate offline
         continue;
       }
 
@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
 
       const alive = await redis.exists(`${qKey}:user:${candidate}`);
       if (!alive) {
-        console.log("Stale candidate", candidate, "expired TTL");
+        // Stale candidate expired
         continue;
       }
 

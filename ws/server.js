@@ -3,23 +3,15 @@ const { Server } = require("socket.io");
 const { PrismaClient } = require("@prisma/client");
 const { Redis } = require("ioredis");
 
-// Force Prisma client regeneration on startup
-console.log("🔄 Initializing Prisma client...");
+// Initialize Prisma client
 const prisma = new PrismaClient();
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
 // Test the Prisma client with a simple query to ensure it's working
 prisma.$connect().then(async () => {
-  console.log("✅ Prisma client connected successfully");
-  
-  // Debug: Check what the Prisma client thinks the Message model looks like
+  // Verify connection silently
   try {
-    const messageFields = Object.keys(prisma.message.fields);
-    console.log("📋 Message model fields:", messageFields);
-    
-    // Try a simple query to see what happens
-    const messageCount = await prisma.message.count();
-    console.log("📊 Total messages in database:", messageCount);
+    await prisma.message.count();
   } catch (err) {
     console.error("❌ Error checking Message model:", err);
   }
@@ -105,7 +97,7 @@ setInterval(async () => {
 
 // Test database connection
 prisma.$connect()
-  .then(() => console.log("✅ Database connected successfully"))
+  .then(() => {}) // Silent success
   .catch((err) => console.error("❌ Database connection failed:", err));
 
 // Clean up Redis keys on startup to avoid type conflicts
@@ -236,12 +228,12 @@ async function isRateLimited(uid) {
 
 // --- Socket.io handlers ---
 io.on("connection", (socket) => {
-  console.log("Socket connected:", socket.id);
+  // Socket connected
   connectionCount++;
   
   socket.on("identify", async ({ userId }) => {
     socketUsers.set(socket.id, userId);
-    console.log("Identify", socket.id, "->", userId);
+    // User identified
     
     // Track active user with minimal Redis commands
     if (userId) {
@@ -268,7 +260,7 @@ io.on("connection", (socket) => {
     }
     socketRooms.get(socket.id).add(roomId);
     
-    console.log(`Socket ${socket.id} joined room ${roomId}`);
+    // Socket joined room
   });
 
   socket.on("message", async ({ roomId, text, userId }) => {
@@ -278,7 +270,6 @@ io.on("connection", (socket) => {
 
     // --- Moderation ---
     if (await isRateLimited(userId)) {
-      console.log("Rate limit hit for", userId);
       return; // silently drop
     }
 
@@ -363,23 +354,19 @@ io.on("connection", (socket) => {
     socket.to(roomId).emit("ended");
     const uid = socketUsers.get(socket.id);
     await cleanupUser(uid);
-    console.log(`User left room ${roomId}`);
+    // User left room
   });
 
       // Disconnect cleanup
       socket.on("disconnect", async (reason) => {
         const uid = socketUsers.get(socket.id);
-        console.log(`Socket disconnected: ${socket.id}, reason: ${reason}, uid: ${uid}`);
         
         // Use tracked rooms instead of socket.rooms (which might be empty)
         const trackedRooms = socketRooms.get(socket.id) || new Set();
-        console.log(`Socket ${socket.id} was in tracked rooms:`, Array.from(trackedRooms));
         
         // Notify all tracked rooms that the user left
         for (const roomId of trackedRooms) {
-          console.log(`Notifying room ${roomId} that user left`);
           socket.to(roomId).emit("ended");
-          console.log(`User disconnected from room ${roomId}`);
         }
         
         if (uid) {
@@ -401,7 +388,7 @@ io.on("connection", (socket) => {
         socketRooms.delete(socket.id);
         
         connectionCount--;
-        console.log("Socket disconnected:", socket.id);
+        // Socket disconnected
       });
 });
 

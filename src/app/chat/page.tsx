@@ -54,10 +54,8 @@ export default function ChatPage() {
 
   function scrollToBottom() {
     if (!scrollRef.current) {
-      console.log("scrollRef.current is null");
       return;
     }
-    console.log("Scrolling to bottom, scrollHeight:", scrollRef.current.scrollHeight);
     
     // Try smooth scroll first
     try {
@@ -67,7 +65,6 @@ export default function ChatPage() {
       });
     } catch (error) {
       // Fallback to instant scroll
-      console.log("Smooth scroll failed, using instant scroll");
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }
@@ -140,7 +137,6 @@ export default function ChatPage() {
     }
 
     s.on("message", (m: ChatMessage) => {
-      console.log("Received message:", m); // Debug log
       setMessages((prev) => [...prev, m]);
     });
     s.on("typing", () => setPartnerTyping(true));
@@ -171,7 +167,7 @@ export default function ChatPage() {
           oscillator.stop(audioContext.currentTime + 0.3);
         });
       } catch (error) {
-        console.log('Could not play notification sound:', error);
+        // Silently handle notification sound errors
       }
     });
 
@@ -209,7 +205,6 @@ export default function ChatPage() {
     const handleLeave = () => {
       if (isNavigating) return; // Prevent multiple calls
       isNavigating = true;
-      console.log("Leaving room:", roomId, "connected:", socket.connected);
       
       if (socket.connected && roomId) {
         socket.emit("leave_room", { roomId });
@@ -224,7 +219,6 @@ export default function ChatPage() {
     const handleLeaveWithBeacon = () => {
       if (isNavigating) return;
       isNavigating = true;
-      console.log("Leaving room with beacon:", roomId);
       
       // Use sendBeacon as a fallback
       if (navigator.sendBeacon) {
@@ -240,18 +234,14 @@ export default function ChatPage() {
 
     // More aggressive approach - use multiple event types
     const handleNavigation = () => {
-      console.log("Navigation detected via multiple events, roomId:", roomId);
       handleLeaveWithBeacon();
     };
 
     // Handle page unload (close tab, navigate away, etc.)
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      console.log("beforeunload event fired, roomId:", roomId, "connected:", socket.connected);
-      
       // Don't emit leave_room - let the disconnect event handle it
       // Just disconnect the WebSocket and let the server detect it
       if (socket.connected) {
-        console.log("Disconnecting WebSocket on beforeunload");
         socket.disconnect();
       }
       
@@ -264,12 +254,9 @@ export default function ChatPage() {
 
     // Handle page hide (more reliable than beforeunload for navigation)
     const handlePageHide = () => {
-      console.log("pagehide event fired, roomId:", roomId, "connected:", socket.connected);
-      
       // Don't emit leave_room - let the disconnect event handle it
       // Just disconnect the WebSocket and let the server detect it
       if (socket.connected) {
-        console.log("Disconnecting WebSocket on pagehide");
         socket.disconnect();
       }
       
@@ -282,19 +269,16 @@ export default function ChatPage() {
 
     // Handle page visibility change (only for actual navigation, not tab switching)
     const handleVisibilityChange = () => {
-      console.log("visibilitychange event fired, hidden:", document.hidden, "roomId:", roomId, "connected:", socket.connected);
       // Don't trigger on tab switching - only on actual page unload
     };
 
     // Handle back button navigation
     const handlePopState = () => {
-      console.log("popstate event fired, roomId:", roomId, "connected:", socket.connected);
       handleLeave();
     };
 
     // Handle focus loss (only for actual navigation, not tab switching)
     const handleBlur = () => {
-      console.log("window blur event fired, roomId:", roomId, "connected:", socket.connected);
       // Don't trigger on tab switching - only on actual page unload
     };
 
@@ -326,10 +310,8 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!scrollRef.current) {
-      console.log("Auto-scroll: scrollRef.current is null");
       return;
     }
-    console.log("Auto-scroll: New message, scrolling to bottom");
     // Use the scrollToBottom function for consistency
     scrollToBottom();
   }, [messages]);
@@ -465,13 +447,6 @@ export default function ChatPage() {
     start(lastMode);
   }
 
-  // Test function to manually trigger leave (for debugging)
-  function testLeave() {
-    console.log("Testing leave manually, roomId:", roomId, "connected:", socketRef.current?.connected);
-    if (roomId && socketRef.current) {
-      socketRef.current.emit("leave_room", { roomId });
-    }
-  }
 
 
   return (
@@ -589,14 +564,6 @@ export default function ChatPage() {
                     <span className="hidden sm:inline">Report</span>
                     <span className="sm:hidden">!</span>
                   </button>
-                  {roomId && (
-                    <button
-                      className="btn btn-ghost flex items-center gap-1 sm:gap-2 text-dark-300 hover:text-yellow-400 group text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
-                      onClick={testLeave}
-                    >
-                      <span className="text-xs">🧪 Test Leave</span>
-                    </button>
-                  )}
                 </div>
               )}
             </div>

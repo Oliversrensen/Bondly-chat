@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const uid = session?.user?.id;
   if (!uid) return new NextResponse("unauthorized", { status: 401 });
 
-  console.log("LEAVE", uid);
+  // User leaving match queue
 
   try {
     // Remove from random queue + TTL shadow

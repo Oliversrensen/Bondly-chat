@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const key = `match:pending:${uid}`;
   const roomId = await redis.get(key);
 
-  console.log("PENDING check", uid, "key:", key, "->", roomId);
+  // Checking pending match
 
   if (!roomId) return NextResponse.json({ roomId: null });
 
