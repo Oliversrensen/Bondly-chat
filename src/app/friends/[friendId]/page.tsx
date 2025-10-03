@@ -113,7 +113,9 @@ export default function FriendChatPage() {
 
   // Socket connection for real-time messaging
   useEffect(() => {
-    if (!myId || !friendId) return;
+    if (!myId || !friendId || !session) return;
+    
+    console.log("Setting up WebSocket connection with:", { myId, friendId, sessionLoaded: !!session });
 
     const wsUrl = process.env.NODE_ENV === 'production' 
       ? process.env.NEXT_PUBLIC_WS_URL || "wss://bondly-websocket.onrender.com"
@@ -127,7 +129,13 @@ export default function FriendChatPage() {
 
     socket.on("connect", () => {
       console.log("Connected to friend chat socket");
-      socket.emit("join_friend_chat", { friendId, myId });
+      console.log("Joining with friendId:", friendId, "myId:", myId);
+      
+      if (friendId && myId) {
+        socket.emit("join_friend_chat", { friendId, myId });
+      } else {
+        console.error("Cannot join friend chat: missing friendId or myId", { friendId, myId });
+      }
     });
 
     socket.on("friend_message", (message: FriendMessage) => {
@@ -161,7 +169,7 @@ export default function FriendChatPage() {
     return () => {
       socket.disconnect();
     };
-  }, [myId, friendId]);
+  }, [myId, friendId, session]);
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !myId || !friendId) return;

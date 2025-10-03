@@ -359,7 +359,18 @@ io.on("connection", (socket) => {
 
   // --- Friend messaging handlers ---
   socket.on("join_friend_chat", ({ friendId, myId }) => {
-    if (!friendId || !myId) return;
+    console.log(`join_friend_chat received: friendId=${friendId}, myId=${myId}`);
+    
+    if (!friendId || !myId) {
+      console.error(`Invalid join_friend_chat: friendId=${friendId}, myId=${myId}`);
+      return;
+    }
+    
+    // Validate that friendId and myId are valid strings
+    if (typeof friendId !== 'string' || typeof myId !== 'string') {
+      console.error(`Invalid types: friendId=${typeof friendId}, myId=${typeof myId}`);
+      return;
+    }
     
     // Join a room specific to this friend pair
     const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
