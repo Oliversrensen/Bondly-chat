@@ -76,6 +76,7 @@ export default function FriendChatPage() {
           } else {
             addToast({
               type: "error",
+              title: "Error",
               message: "Friend not found"
             });
             router.push("/friends");
@@ -94,6 +95,7 @@ export default function FriendChatPage() {
         console.error("Error loading friend data:", error);
         addToast({
           type: "error",
+          title: "Error",
           message: "Failed to load chat"
         });
       } finally {
@@ -176,6 +178,7 @@ export default function FriendChatPage() {
       } else {
         addToast({
           type: "error",
+          title: "Error",
           message: "Failed to send message"
         });
         setNewMessage(messageText); // Restore message on failure
@@ -183,6 +186,7 @@ export default function FriendChatPage() {
     } catch (error) {
       addToast({
         type: "error",
+        title: "Error",
         message: "Failed to send message"
       });
       setNewMessage(messageText);

@@ -40,7 +40,7 @@ export async function GET() {
     // Transform the data to show friend info regardless of who initiated
     const friendsList = friends.map(friend => ({
       id: friend.id,
-      friend: friend.requesterId === session.user.id ? friend.receiver : friend.requester,
+      friend: friend.requesterId === session.user?.id ? friend.receiver : friend.requester,
       createdAt: friend.createdAt
     }));
 

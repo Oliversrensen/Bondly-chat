@@ -80,6 +80,7 @@ export default function FriendsPage() {
       if (response.ok) {
         addToast({
           type: "success",
+          title: "Success",
           message: `Friend request ${action.toLowerCase()}ed`
         });
         fetchFriends();
@@ -88,12 +89,14 @@ export default function FriendsPage() {
         const error = await response.json();
         addToast({
           type: "error",
+          title: "Error",
           message: error.error || "Failed to update friend request"
         });
       }
     } catch (error) {
       addToast({
         type: "error",
+        title: "Error",
         message: "Failed to update friend request"
       });
     }
