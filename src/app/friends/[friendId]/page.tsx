@@ -248,86 +248,116 @@ export default function FriendChatPage() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex flex-col overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col overflow-hidden">
       {/* Header - Fixed */}
-      <div className="bg-white/10 backdrop-blur-sm border-b border-white/20 p-4 flex-shrink-0">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
+      <div className="bg-white/5 backdrop-blur-xl border-b border-white/10 p-6 flex-shrink-0 shadow-2xl">
+        <div className="max-w-5xl mx-auto flex items-center gap-6">
           <button
             onClick={() => router.push("/friends")}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-3 hover:bg-white/10 rounded-2xl transition-all duration-300 group"
           >
-            <ArrowLeft className="w-6 h-6 text-white" />
+            <ArrowLeft className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
           </button>
           
-          <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-            {getDisplayName(friend.friend).charAt(0).toUpperCase()}
+          <div className="relative">
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-xl ring-4 ring-white/10">
+              {getDisplayName(friend.friend).charAt(0).toUpperCase()}
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-slate-900"></div>
           </div>
           
           <div className="flex-1 min-w-0">
-            <h1 className="text-white font-semibold text-lg truncate">
+            <h1 className="text-white font-bold text-xl truncate mb-1">
               {getDisplayName(friend.friend)}
             </h1>
             <p className="text-gray-300 text-sm">
               {friendTyping ? (
-                <span className="flex items-center gap-1">
-                  <span className="animate-pulse">●</span>
+                <span className="flex items-center gap-2 text-emerald-400">
+                  <div className="flex gap-1">
+                    <div className="w-1 h-1 bg-emerald-400 rounded-full animate-bounce"></div>
+                    <div className="w-1 h-1 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-1 h-1 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
                   Typing...
                 </span>
               ) : (
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                  Online
+                <span className="flex items-center gap-2 text-emerald-400">
+                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                  Online now
                 </span>
               )}
             </p>
           </div>
           
-          <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-            <MoreVertical className="w-6 h-6 text-white" />
-          </button>
+          <div className="flex gap-2">
+            <button className="p-3 hover:bg-white/10 rounded-2xl transition-all duration-300 group">
+              <svg className="w-6 h-6 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+            </button>
+            <button className="p-3 hover:bg-white/10 rounded-2xl transition-all duration-300 group">
+              <MoreVertical className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Messages Container - Flexible */}
-      <div className="flex-1 max-w-4xl mx-auto w-full flex flex-col min-h-0">
+      <div className="flex-1 max-w-5xl mx-auto w-full flex flex-col min-h-0 relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 via-purple-400/20 to-pink-400/20"></div>
+        </div>
+        
         {/* Messages Area - Scrollable */}
         <div 
           ref={messagesContainerRef} 
-          className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
+          className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent relative z-10"
         >
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full p-4">
-              <div className="text-center max-w-md">
+              <div className="text-center max-w-lg">
                 {/* Chat bubble illustration */}
-                <div className="relative mb-6 opacity-60">
+                <div className="relative mb-8 opacity-60">
                   {/* Friend's bubble */}
-                  <div className="flex justify-start mb-4 animate-fade-in">
-                    <div className="bg-white/20 text-white backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3 shadow-sm max-w-[200px]">
-                      <p className="text-sm">Hey there! 👋</p>
-                      <p className="text-xs mt-2 text-gray-300">Just now</p>
+                  <div className="flex justify-start mb-6 animate-fade-in">
+                    <div className="max-w-[75%] mr-12">
+                      <div className="bg-white/10 text-white border border-white/20 rounded-3xl px-6 py-4 shadow-xl backdrop-blur-sm">
+                        <p className="text-sm font-medium">Hey there! 👋</p>
+                        <p className="text-xs mt-3 text-gray-300">Just now</p>
+                      </div>
+                      <div className="w-0 h-0 ml-2 border-r-[8px] border-r-white/10 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"></div>
                     </div>
                   </div>
                   
                   {/* Your bubble */}
-                  <div className="flex justify-end mb-4 animate-fade-in" style={{ animationDelay: '0.5s' }}>
-                    <div className="bg-blue-600 text-white rounded-2xl px-4 py-3 shadow-sm max-w-[200px]">
-                      <p className="text-sm">Hello! Nice to meet you 😊</p>
-                      <p className="text-xs mt-2 text-blue-100">Just now</p>
+                  <div className="flex justify-end mb-6 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                    <div className="max-w-[75%] ml-12">
+                      <div className="bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-3xl px-6 py-4 shadow-xl">
+                        <p className="text-sm font-medium">Hello! Nice to meet you 😊</p>
+                        <p className="text-xs mt-3 text-blue-100">Just now</p>
+                      </div>
+                      <div className="w-0 h-0 ml-auto mr-2 border-l-[8px] border-l-blue-500 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"></div>
                     </div>
                   </div>
                   
                   {/* Another friend message */}
                   <div className="flex justify-start animate-fade-in" style={{ animationDelay: '1s' }}>
-                    <div className="bg-white/20 text-white backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3 shadow-sm max-w-[180px]">
-                      <p className="text-sm">How are you doing today?</p>
-                      <p className="text-xs mt-2 text-gray-300">Just now</p>
+                    <div className="max-w-[75%] mr-12">
+                      <div className="bg-white/10 text-white border border-white/20 rounded-3xl px-6 py-4 shadow-xl backdrop-blur-sm">
+                        <p className="text-sm font-medium">How are you doing today?</p>
+                        <p className="text-xs mt-3 text-gray-300">Just now</p>
+                      </div>
+                      <div className="w-0 h-0 ml-2 border-r-[8px] border-r-white/10 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"></div>
                     </div>
                   </div>
                 </div>
                 
-                <div className="space-y-2">
-                  <Users className="w-12 h-12 text-gray-400 mx-auto" />
-                  <p className="text-gray-300 text-lg font-medium">Start your conversation!</p>
+                <div className="space-y-3">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-xl ring-4 ring-white/10 mx-auto">
+                    <Users className="w-8 h-8" />
+                  </div>
+                  <p className="text-gray-200 text-xl font-bold">Start your conversation!</p>
                   <p className="text-gray-400 text-sm">Send your first message to {getDisplayName(friend.friend)}</p>
                 </div>
               </div>
@@ -344,22 +374,31 @@ export default function FriendChatPage() {
                     isNewMessage ? "animate-slide-in-up" : ""
                   }`}
                 >
-                  <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
-                      isMine
-                        ? "bg-blue-600 text-white"
-                        : "bg-white/20 text-white backdrop-blur-sm border border-white/10"
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed">{message.text}</p>
-                    <p className={`text-xs mt-2 ${
-                      isMine ? "text-blue-100" : "text-gray-300"
-                    }`}>
-                      {new Date(message.createdAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
+                  <div className={`max-w-[75%] ${isMine ? "ml-12" : "mr-12"}`}>
+                    <div
+                      className={`rounded-3xl px-6 py-4 shadow-xl backdrop-blur-sm ${
+                        isMine
+                          ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white"
+                          : "bg-white/10 text-white border border-white/20"
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed font-medium">{message.text}</p>
+                      <p className={`text-xs mt-3 ${
+                        isMine ? "text-blue-100" : "text-gray-300"
+                      }`}>
+                        {new Date(message.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                    
+                    {/* Message tail */}
+                    <div className={`w-0 h-0 ${isMine ? "ml-auto mr-2" : "ml-2"} ${
+                      isMine 
+                        ? "border-l-[8px] border-l-blue-500 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"
+                        : "border-r-[8px] border-r-white/10 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"
+                    }`}></div>
                   </div>
                 </div>
               );
@@ -368,24 +407,27 @@ export default function FriendChatPage() {
         </div>
 
         {/* Message Input - Fixed */}
-        <div className="flex-shrink-0 p-4 bg-white/5 backdrop-blur-sm border-t border-white/10">
-          <div className="flex gap-3 items-end">
+        <div className="flex-shrink-0 p-6 bg-white/5 backdrop-blur-xl border-t border-white/10 relative">
+          <div className="flex gap-4 items-end">
             <div className="flex-1 relative">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={handleTyping}
-                onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                placeholder={`Message ${getDisplayName(friend.friend)}...`}
-                className="w-full bg-white/10 border border-white/20 rounded-2xl px-4 py-3 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={handleTyping}
+                  onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+                  placeholder={`Message ${getDisplayName(friend.friend)}...`}
+                  className="w-full bg-white/10 border border-white/20 rounded-3xl px-6 py-4 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none shadow-xl backdrop-blur-sm"
+                />
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              </div>
             </div>
             <button
               onClick={sendMessage}
               disabled={!newMessage.trim()}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white p-3 rounded-2xl transition-colors shadow-lg disabled:shadow-none"
+              className="bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white p-4 rounded-3xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 disabled:scale-100 disabled:shadow-lg group"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-5 h-5 group-hover:scale-110 transition-transform" />
             </button>
           </div>
         </div>
