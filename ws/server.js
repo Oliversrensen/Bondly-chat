@@ -234,15 +234,11 @@ io.on("connection", (socket) => {
   // Handle auth object from connection
   if (socket.handshake.auth && socket.handshake.auth.userId) {
     const userId = socket.handshake.auth.userId;
-    console.log(`🔐 User ${userId} authenticated via auth object with socket ${socket.id}`);
     socketUsers.set(socket.id, userId);
-    console.log(`📊 Total authenticated users: ${socketUsers.size}`);
   }
   
   socket.on("identify", async ({ userId }) => {
-    console.log(`🔐 User ${userId} identified with socket ${socket.id}`);
     socketUsers.set(socket.id, userId);
-    console.log(`📊 Total identified users: ${socketUsers.size}`);
     // User identified
     
     // Track active user with minimal Redis commands
@@ -368,22 +364,11 @@ io.on("connection", (socket) => {
   });
 
   // --- Friend messaging handlers ---
-  // Debug: Log all events received
-  socket.onAny((eventName, ...args) => {
-    console.log(`📨 Received event: ${eventName}`, args);
-  });
-
   socket.on("join_friend_chat", ({ friendId, myId }) => {
-    console.log(`join_friend_chat received: friendId=${friendId}, myId=${myId}`);
-    
-    if (!friendId || !myId) {
-      console.error(`Invalid join_friend_chat: friendId=${friendId}, myId=${myId}`);
-      return;
-    }
+    if (!friendId || !myId) return;
     
     // Validate that friendId and myId are valid strings
     if (typeof friendId !== 'string' || typeof myId !== 'string') {
-      console.error(`Invalid types: friendId=${typeof friendId}, myId=${typeof myId}`);
       return;
     }
     
@@ -398,30 +383,16 @@ io.on("connection", (socket) => {
       socketRooms.set(socket.id, new Set());
     }
     socketRooms.get(socket.id).add(friendRoom);
-    
-    console.log(`User ${myId} joined friend chat room ${friendRoom}`);
   });
 
   socket.on("send_friend_message", async ({ friendId, message }) => {
-    console.log("🎯 send_friend_message handler triggered!");
-    console.log("📨 Raw data received:", { friendId, message });
-    
-    if (!friendId || !message) {
-      console.error("❌ Missing friendId or message:", { friendId, message });
-      return;
-    }
+    if (!friendId || !message) return;
     
     const myId = socketUsers.get(socket.id);
-    if (!myId) {
-      console.error("❌ No myId found for socket:", socket.id);
-      return;
-    }
-
-    console.log(`✅ send_friend_message received from ${myId} to ${friendId}:`, message.text);
+    if (!myId) return;
 
     // Rate limiting for friend messages
     if (await isRateLimited(myId)) {
-      console.log(`Rate limited friend message from ${myId}`);
       return;
     }
 
@@ -432,9 +403,6 @@ io.on("connection", (socket) => {
     // Get the friend room (same logic as join_friend_chat)
     const sortedIds = [myId, friendId].sort();
     const friendRoom = `friend_${sortedIds[0]}_${sortedIds[1]}`;
-    
-    console.log(`Broadcasting to room ${friendRoom}`);
-    console.log(`Room has ${io.sockets.adapter.rooms.get(friendRoom)?.size || 0} sockets`);
     
     // Emit to all sockets in the friend room
     io.to(friendRoom).emit("friend_message", message);

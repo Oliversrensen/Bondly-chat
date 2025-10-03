@@ -115,14 +115,9 @@ export default function FriendChatPage() {
   useEffect(() => {
     if (!myId || !friendId || !session) return;
     
-    console.log("Setting up WebSocket connection with:", { myId, friendId, sessionLoaded: !!session });
-
     const wsUrl = process.env.NODE_ENV === 'production' 
       ? (process.env.NEXT_PUBLIC_WS_URL || "wss://bondly-websocket.onrender.com").replace(/^https?:\/\//, 'wss://')
       : "ws://localhost:3001";
-    
-    console.log("🔗 Connecting to WebSocket URL:", wsUrl);
-    console.log("🌍 Environment:", process.env.NODE_ENV);
     
     socketRef.current = io(wsUrl, {
       auth: { userId: myId }
@@ -131,19 +126,12 @@ export default function FriendChatPage() {
     const socket = socketRef.current;
 
     socket.on("connect", () => {
-      console.log("✅ Connected to friend chat socket");
-      console.log("Joining with friendId:", friendId, "myId:", myId);
-      
       if (friendId && myId) {
-        console.log("🚀 Emitting join_friend_chat event");
         socket.emit("join_friend_chat", { friendId, myId });
-      } else {
-        console.error("❌ Cannot join friend chat: missing friendId or myId", { friendId, myId });
       }
     });
 
     socket.on("friend_message", (message: FriendMessage) => {
-      console.log("Received friend message:", message);
       setMessages(prev => {
         const newMessages = [...prev, message];
         setLastMessageCount(prev.length);
@@ -157,23 +145,9 @@ export default function FriendChatPage() {
       }
     });
 
-    socket.on("connect_error", (error) => {
-      console.error("❌ WebSocket connection error:", error);
-    });
-
-    socket.on("error", (error) => {
-      console.error("❌ WebSocket error:", error);
-    });
-
-    socket.on("disconnect", (reason) => {
-      console.log("🔌 WebSocket disconnected:", reason);
-    });
-
-    socket.on("reconnect", (attemptNumber) => {
-      console.log("🔄 WebSocket reconnected after", attemptNumber, "attempts");
+    socket.on("reconnect", () => {
       // Rejoin the friend chat room after reconnection
       if (friendId && myId) {
-        console.log("🔄 Rejoining friend chat room after reconnection");
         socket.emit("join_friend_chat", { friendId, myId });
       }
     });
@@ -206,18 +180,10 @@ export default function FriendChatPage() {
         
         // Emit to socket for real-time delivery
         if (socketRef.current) {
-          console.log("Sending friend message via socket:", { friendId, message: messageData.message });
-          console.log("Socket connected:", socketRef.current.connected);
-          console.log("Socket ID:", socketRef.current.id);
-          
           socketRef.current.emit("send_friend_message", {
             friendId,
             message: messageData.message
           });
-          
-          console.log("Message emitted successfully");
-        } else {
-          console.error("Socket not available for sending message");
         }
       } else {
         addToast({
