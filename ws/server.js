@@ -358,6 +358,11 @@ io.on("connection", (socket) => {
   });
 
   // --- Friend messaging handlers ---
+  // Debug: Log all events received
+  socket.onAny((eventName, ...args) => {
+    console.log(`📨 Received event: ${eventName}`, args);
+  });
+
   socket.on("join_friend_chat", ({ friendId, myId }) => {
     console.log(`join_friend_chat received: friendId=${friendId}, myId=${myId}`);
     
@@ -388,12 +393,21 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send_friend_message", async ({ friendId, message }) => {
-    if (!friendId || !message) return;
+    console.log("🎯 send_friend_message handler triggered!");
+    console.log("📨 Raw data received:", { friendId, message });
+    
+    if (!friendId || !message) {
+      console.error("❌ Missing friendId or message:", { friendId, message });
+      return;
+    }
     
     const myId = socketUsers.get(socket.id);
-    if (!myId) return;
+    if (!myId) {
+      console.error("❌ No myId found for socket:", socket.id);
+      return;
+    }
 
-    console.log(`send_friend_message received from ${myId} to ${friendId}:`, message.text);
+    console.log(`✅ send_friend_message received from ${myId} to ${friendId}:`, message.text);
 
     // Rate limiting for friend messages
     if (await isRateLimited(myId)) {
