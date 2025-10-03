@@ -150,6 +150,14 @@ export default function FriendChatPage() {
       console.log("Disconnected from friend chat socket");
     });
 
+    socket.on("connect_error", (error) => {
+      console.error("WebSocket connection error:", error);
+    });
+
+    socket.on("error", (error) => {
+      console.error("WebSocket error:", error);
+    });
+
     return () => {
       socket.disconnect();
     };

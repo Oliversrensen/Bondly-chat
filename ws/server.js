@@ -380,8 +380,11 @@ io.on("connection", (socket) => {
     const myId = socketUsers.get(socket.id);
     if (!myId) return;
 
+    console.log(`Received friend message from ${myId} to ${friendId}:`, message.text);
+
     // Rate limiting for friend messages
     if (await isRateLimited(myId)) {
+      console.log(`Rate limited friend message from ${myId}`);
       return;
     }
 
@@ -393,6 +396,7 @@ io.on("connection", (socket) => {
     const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
     
     console.log(`Broadcasting friend message from ${myId} to room ${friendRoom}:`, message.text);
+    console.log(`Room ${friendRoom} has ${io.sockets.adapter.rooms.get(friendRoom)?.size || 0} sockets`);
     
     // Emit to all sockets in the friend room
     io.to(friendRoom).emit("friend_message", message);
@@ -449,7 +453,7 @@ io.on("connection", (socket) => {
       });
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || "0.0.0.0";
 
 // Graceful shutdown handler
