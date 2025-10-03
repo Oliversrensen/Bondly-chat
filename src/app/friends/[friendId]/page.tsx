@@ -296,11 +296,40 @@ export default function FriendChatPage() {
           className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
         >
           {messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-300 text-lg font-medium">Start your conversation!</p>
-                <p className="text-gray-400 text-sm">Send your first message to {getDisplayName(friend.friend)}</p>
+            <div className="flex items-center justify-center h-full p-4">
+              <div className="text-center max-w-md">
+                {/* Chat bubble illustration */}
+                <div className="relative mb-6 opacity-60">
+                  {/* Friend's bubble */}
+                  <div className="flex justify-start mb-4 animate-fade-in">
+                    <div className="bg-white/20 text-white backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3 shadow-sm max-w-[200px]">
+                      <p className="text-sm">Hey there! 👋</p>
+                      <p className="text-xs mt-2 text-gray-300">Just now</p>
+                    </div>
+                  </div>
+                  
+                  {/* Your bubble */}
+                  <div className="flex justify-end mb-4 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                    <div className="bg-blue-600 text-white rounded-2xl px-4 py-3 shadow-sm max-w-[200px]">
+                      <p className="text-sm">Hello! Nice to meet you 😊</p>
+                      <p className="text-xs mt-2 text-blue-100">Just now</p>
+                    </div>
+                  </div>
+                  
+                  {/* Another friend message */}
+                  <div className="flex justify-start animate-fade-in" style={{ animationDelay: '1s' }}>
+                    <div className="bg-white/20 text-white backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3 shadow-sm max-w-[180px]">
+                      <p className="text-sm">How are you doing today?</p>
+                      <p className="text-xs mt-2 text-gray-300">Just now</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto" />
+                  <p className="text-gray-300 text-lg font-medium">Start your conversation!</p>
+                  <p className="text-gray-400 text-sm">Send your first message to {getDisplayName(friend.friend)}</p>
+                </div>
               </div>
             </div>
           ) : (
