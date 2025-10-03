@@ -231,8 +231,18 @@ io.on("connection", (socket) => {
   // Socket connected
   connectionCount++;
   
-  socket.on("identify", async ({ userId }) => {
+  // Handle auth object from connection
+  if (socket.handshake.auth && socket.handshake.auth.userId) {
+    const userId = socket.handshake.auth.userId;
+    console.log(`🔐 User ${userId} authenticated via auth object with socket ${socket.id}`);
     socketUsers.set(socket.id, userId);
+    console.log(`📊 Total authenticated users: ${socketUsers.size}`);
+  }
+  
+  socket.on("identify", async ({ userId }) => {
+    console.log(`🔐 User ${userId} identified with socket ${socket.id}`);
+    socketUsers.set(socket.id, userId);
+    console.log(`📊 Total identified users: ${socketUsers.size}`);
     // User identified
     
     // Track active user with minimal Redis commands
