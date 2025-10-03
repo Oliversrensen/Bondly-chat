@@ -326,7 +326,6 @@ export default function FriendChatPage() {
                         <p className="text-sm font-medium">Hey there! 👋</p>
                         <p className="text-xs mt-3 text-gray-300">Just now</p>
                       </div>
-                      <div className="w-0 h-0 ml-2 border-r-[8px] border-r-white/10 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"></div>
                     </div>
                   </div>
                   
@@ -337,7 +336,6 @@ export default function FriendChatPage() {
                         <p className="text-sm font-medium">Hello! Nice to meet you 😊</p>
                         <p className="text-xs mt-3 text-blue-100">Just now</p>
                       </div>
-                      <div className="w-0 h-0 ml-auto mr-2 border-l-[8px] border-l-blue-500 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"></div>
                     </div>
                   </div>
                   
@@ -348,7 +346,6 @@ export default function FriendChatPage() {
                         <p className="text-sm font-medium">How are you doing today?</p>
                         <p className="text-xs mt-3 text-gray-300">Just now</p>
                       </div>
-                      <div className="w-0 h-0 ml-2 border-r-[8px] border-r-white/10 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"></div>
                     </div>
                   </div>
                 </div>
@@ -392,13 +389,6 @@ export default function FriendChatPage() {
                         })}
                       </p>
                     </div>
-                    
-                    {/* Message tail */}
-                    <div className={`w-0 h-0 ${isMine ? "ml-auto mr-2" : "ml-2"} ${
-                      isMine 
-                        ? "border-l-[8px] border-l-blue-500 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"
-                        : "border-r-[8px] border-r-white/10 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"
-                    }`}></div>
                   </div>
                 </div>
               );
