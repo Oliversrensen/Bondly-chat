@@ -4,9 +4,10 @@
   "description": "Chat with strangers anonymously and make meaningful connections",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1A0B19",
-  "theme_color": "#FF6B00",
+  "background_color": "#0f172a",
+  "theme_color": "#0ea5e9",
   "orientation": "portrait-primary",
+  "scope": "/",
   "icons": [
     {
       "src": "/favicon.png",
@@ -23,5 +24,6 @@
   ],
   "categories": ["social", "communication", "entertainment"],
   "lang": "en",
-  "dir": "ltr"
+  "dir": "ltr",
+  "prefer_related_applications": false
 }
