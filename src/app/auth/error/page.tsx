@@ -2,8 +2,9 @@
 
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -63,5 +64,31 @@ export default function AuthErrorPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800 flex items-center justify-center px-4">
+      <div className="card card-elevated max-w-md w-full text-center">
+        <div className="w-16 h-16 bg-dark-700/50 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+          <div className="w-8 h-8 bg-dark-600 rounded"></div>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="h-6 bg-dark-700/50 rounded animate-pulse"></div>
+          <div className="h-4 bg-dark-700/50 rounded animate-pulse"></div>
+          <div className="h-4 bg-dark-700/50 rounded w-3/4 mx-auto animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AuthErrorContent />
+    </Suspense>
   );
 }
