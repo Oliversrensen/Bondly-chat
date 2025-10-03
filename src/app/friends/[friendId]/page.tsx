@@ -129,6 +129,9 @@ export default function FriendChatPage() {
       console.log("Connected to friend chat socket");
       console.log("Joining friend chat room for:", { friendId, myId });
       socket.emit("join_friend_chat", { friendId, myId });
+      
+      // Test the connection by sending a ping
+      socket.emit("ping", "friend_chat_test");
     });
 
     socket.on("friend_message", (message: FriendMessage) => {
@@ -156,6 +159,10 @@ export default function FriendChatPage() {
 
     socket.on("error", (error) => {
       console.error("WebSocket error:", error);
+    });
+
+    socket.on("pong", (data) => {
+      console.log("Pong received from server:", data);
     });
 
     return () => {

@@ -358,8 +358,15 @@ io.on("connection", (socket) => {
   });
 
   // --- Friend messaging handlers ---
+  socket.on("ping", (data) => {
+    console.log(`Ping received from socket ${socket.id}:`, data);
+    socket.emit("pong", "friend_chat_ack");
+  });
+
   socket.on("join_friend_chat", ({ friendId, myId }) => {
     if (!friendId || !myId) return;
+    
+    console.log(`join_friend_chat received: friendId=${friendId}, myId=${myId}`);
     
     // Join a room specific to this friend pair
     const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
@@ -372,6 +379,8 @@ io.on("connection", (socket) => {
     socketRooms.get(socket.id).add(friendRoom);
     
     console.log(`User ${myId} joined friend chat room ${friendRoom}`);
+    console.log(`Total rooms: ${io.sockets.adapter.rooms.size}`);
+    console.log(`Room ${friendRoom} now has ${io.sockets.adapter.rooms.get(friendRoom)?.size || 0} sockets`);
   });
 
   socket.on("send_friend_message", async ({ friendId, message }) => {
