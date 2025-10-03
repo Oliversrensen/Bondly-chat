@@ -370,6 +370,8 @@ io.on("connection", (socket) => {
       socketRooms.set(socket.id, new Set());
     }
     socketRooms.get(socket.id).add(friendRoom);
+    
+    console.log(`User ${myId} joined friend chat room ${friendRoom}`);
   });
 
   socket.on("send_friend_message", async ({ friendId, message }) => {
@@ -389,6 +391,8 @@ io.on("connection", (socket) => {
 
     // Get the friend room
     const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
+    
+    console.log(`Broadcasting friend message from ${myId} to room ${friendRoom}:`, message.text);
     
     // Emit to all sockets in the friend room
     io.to(friendRoom).emit("friend_message", message);

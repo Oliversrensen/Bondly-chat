@@ -116,7 +116,7 @@ export default function FriendChatPage() {
     if (!myId || !friendId) return;
 
     const wsUrl = process.env.NODE_ENV === 'production' 
-      ? process.env.NEXT_PUBLIC_WS_URL || "https://bondly-websocket.onrender.com"
+      ? process.env.NEXT_PUBLIC_WS_URL || "wss://bondly-websocket.onrender.com"
       : "ws://localhost:3001";
     
     socketRef.current = io(wsUrl, {
@@ -127,10 +127,12 @@ export default function FriendChatPage() {
 
     socket.on("connect", () => {
       console.log("Connected to friend chat socket");
+      console.log("Joining friend chat room for:", { friendId, myId });
       socket.emit("join_friend_chat", { friendId, myId });
     });
 
     socket.on("friend_message", (message: FriendMessage) => {
+      console.log("Received friend message:", message);
       setMessages(prev => {
         const newMessages = [...prev, message];
         setLastMessageCount(prev.length);
@@ -175,6 +177,7 @@ export default function FriendChatPage() {
         
         // Emit to socket for real-time delivery
         if (socketRef.current) {
+          console.log("Sending friend message via socket:", { friendId, message: messageData.message });
           socketRef.current.emit("send_friend_message", {
             friendId,
             message: messageData.message
