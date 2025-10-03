@@ -121,6 +121,9 @@ export default function FriendChatPage() {
       ? process.env.NEXT_PUBLIC_WS_URL || "wss://bondly-websocket.onrender.com"
       : "ws://localhost:3001";
     
+    console.log("🔗 Connecting to WebSocket URL:", wsUrl);
+    console.log("🌍 Environment:", process.env.NODE_ENV);
+    
     socketRef.current = io(wsUrl, {
       auth: { userId: myId }
     });
@@ -128,13 +131,14 @@ export default function FriendChatPage() {
     const socket = socketRef.current;
 
     socket.on("connect", () => {
-      console.log("Connected to friend chat socket");
+      console.log("✅ Connected to friend chat socket");
       console.log("Joining with friendId:", friendId, "myId:", myId);
       
       if (friendId && myId) {
+        console.log("🚀 Emitting join_friend_chat event");
         socket.emit("join_friend_chat", { friendId, myId });
       } else {
-        console.error("Cannot join friend chat: missing friendId or myId", { friendId, myId });
+        console.error("❌ Cannot join friend chat: missing friendId or myId", { friendId, myId });
       }
     });
 
@@ -153,16 +157,16 @@ export default function FriendChatPage() {
       }
     });
 
-    socket.on("disconnect", () => {
-      console.log("Disconnected from friend chat socket");
-    });
-
     socket.on("connect_error", (error) => {
-      console.error("WebSocket connection error:", error);
+      console.error("❌ WebSocket connection error:", error);
     });
 
     socket.on("error", (error) => {
-      console.error("WebSocket error:", error);
+      console.error("❌ WebSocket error:", error);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("🔌 WebSocket disconnected:", reason);
     });
 
 
