@@ -393,8 +393,11 @@ io.on("connection", (socket) => {
     const myId = socketUsers.get(socket.id);
     if (!myId) return;
 
+    console.log(`send_friend_message received from ${myId} to ${friendId}:`, message.text);
+
     // Rate limiting for friend messages
     if (await isRateLimited(myId)) {
+      console.log(`Rate limited friend message from ${myId}`);
       return;
     }
 
@@ -405,6 +408,9 @@ io.on("connection", (socket) => {
     // Get the friend room (same logic as join_friend_chat)
     const sortedIds = [myId, friendId].sort();
     const friendRoom = `friend_${sortedIds[0]}_${sortedIds[1]}`;
+    
+    console.log(`Broadcasting to room ${friendRoom}`);
+    console.log(`Room has ${io.sockets.adapter.rooms.get(friendRoom)?.size || 0} sockets`);
     
     // Emit to all sockets in the friend room
     io.to(friendRoom).emit("friend_message", message);

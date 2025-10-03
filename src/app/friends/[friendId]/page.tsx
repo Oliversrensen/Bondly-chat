@@ -193,10 +193,13 @@ export default function FriendChatPage() {
         
         // Emit to socket for real-time delivery
         if (socketRef.current) {
+          console.log("Sending friend message via socket:", { friendId, message: messageData.message });
           socketRef.current.emit("send_friend_message", {
             friendId,
             message: messageData.message
           });
+        } else {
+          console.error("Socket not available for sending message");
         }
       } else {
         addToast({
