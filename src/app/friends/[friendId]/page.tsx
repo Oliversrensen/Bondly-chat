@@ -248,9 +248,9 @@ export default function FriendChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      {/* Header */}
-      <div className="bg-white/10 backdrop-blur-sm border-b border-white/20 p-4">
+    <div className="h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex flex-col overflow-hidden">
+      {/* Header - Fixed */}
+      <div className="bg-white/10 backdrop-blur-sm border-b border-white/20 p-4 flex-shrink-0">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <button
             onClick={() => router.push("/friends")}
@@ -259,16 +259,26 @@ export default function FriendChatPage() {
             <ArrowLeft className="w-6 h-6 text-white" />
           </button>
           
-          <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+          <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
             {getDisplayName(friend.friend).charAt(0).toUpperCase()}
           </div>
           
-          <div className="flex-1">
-            <h1 className="text-white font-semibold text-lg">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-white font-semibold text-lg truncate">
               {getDisplayName(friend.friend)}
             </h1>
             <p className="text-gray-300 text-sm">
-              {friendTyping ? "Typing..." : "Online"}
+              {friendTyping ? (
+                <span className="flex items-center gap-1">
+                  <span className="animate-pulse">●</span>
+                  Typing...
+                </span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                  Online
+                </span>
+              )}
             </p>
           </div>
           
@@ -278,14 +288,20 @@ export default function FriendChatPage() {
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col">
-        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages Container - Flexible */}
+      <div className="flex-1 max-w-4xl mx-auto w-full flex flex-col min-h-0">
+        {/* Messages Area - Scrollable */}
+        <div 
+          ref={messagesContainerRef} 
+          className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
+        >
           {messages.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-300 text-lg">Start your conversation!</p>
-              <p className="text-gray-400">Send your first message to {getDisplayName(friend.friend)}</p>
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-300 text-lg font-medium">Start your conversation!</p>
+                <p className="text-gray-400 text-sm">Send your first message to {getDisplayName(friend.friend)}</p>
+              </div>
             </div>
           ) : (
             messages.map((message, index) => {
@@ -300,14 +316,14 @@ export default function FriendChatPage() {
                   }`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                    className={`max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
                       isMine
                         ? "bg-blue-600 text-white"
-                        : "bg-white/20 text-white backdrop-blur-sm"
+                        : "bg-white/20 text-white backdrop-blur-sm border border-white/10"
                     }`}
                   >
-                    <p className="text-sm">{message.text}</p>
-                    <p className={`text-xs mt-1 ${
+                    <p className="text-sm leading-relaxed">{message.text}</p>
+                    <p className={`text-xs mt-2 ${
                       isMine ? "text-blue-100" : "text-gray-300"
                     }`}>
                       {new Date(message.createdAt).toLocaleTimeString([], {
@@ -322,21 +338,23 @@ export default function FriendChatPage() {
           )}
         </div>
 
-        {/* Message Input */}
-        <div className="p-4 bg-white/5 backdrop-blur-sm border-t border-white/10">
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={handleTyping}
-              onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-              placeholder={`Message ${getDisplayName(friend.friend)}...`}
-              className="flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-3 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+        {/* Message Input - Fixed */}
+        <div className="flex-shrink-0 p-4 bg-white/5 backdrop-blur-sm border-t border-white/10">
+          <div className="flex gap-3 items-end">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={handleTyping}
+                onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+                placeholder={`Message ${getDisplayName(friend.friend)}...`}
+                className="w-full bg-white/10 border border-white/20 rounded-2xl px-4 py-3 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              />
+            </div>
             <button
               onClick={sendMessage}
               disabled={!newMessage.trim()}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white p-3 rounded-full transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white p-3 rounded-2xl transition-colors shadow-lg disabled:shadow-none"
             >
               <Send className="w-5 h-5" />
             </button>
