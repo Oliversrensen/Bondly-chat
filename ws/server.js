@@ -357,6 +357,59 @@ io.on("connection", (socket) => {
     // User left room
   });
 
+  // --- Friend messaging handlers ---
+  socket.on("join_friend_chat", ({ friendId, myId }) => {
+    if (!friendId || !myId) return;
+    
+    // Join a room specific to this friend pair
+    const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
+    socket.join(friendRoom);
+    
+    // Track the room for this socket
+    if (!socketRooms.has(socket.id)) {
+      socketRooms.set(socket.id, new Set());
+    }
+    socketRooms.get(socket.id).add(friendRoom);
+  });
+
+  socket.on("send_friend_message", async ({ friendId, message }) => {
+    if (!friendId || !message) return;
+    
+    const myId = socketUsers.get(socket.id);
+    if (!myId) return;
+
+    // Rate limiting for friend messages
+    if (await isRateLimited(myId)) {
+      return;
+    }
+
+    // Sanitize the message
+    const cleanText = sanitizeMessage(message.text);
+    message.text = cleanText;
+
+    // Get the friend room
+    const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
+    
+    // Emit to all sockets in the friend room
+    io.to(friendRoom).emit("friend_message", message);
+  });
+
+  socket.on("friend_typing", ({ friendId, isTyping }) => {
+    if (!friendId) return;
+    
+    const myId = socketUsers.get(socket.id);
+    if (!myId) return;
+
+    // Get the friend room
+    const friendRoom = `friend_${Math.min(myId, friendId)}_${Math.max(myId, friendId)}`;
+    
+    // Emit typing status to other users in the room
+    socket.to(friendRoom).emit("friend_typing", { 
+      friendId: myId, 
+      isTyping 
+    });
+  });
+
       // Disconnect cleanup
       socket.on("disconnect", async (reason) => {
         const uid = socketUsers.get(socket.id);

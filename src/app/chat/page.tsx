@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
-import { Send, Sparkles, Shuffle, SkipForward, Flag } from "lucide-react";
+import { Send, Sparkles, Shuffle, SkipForward, Flag, UserPlus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/Toast";
 import { MessageSkeleton, ChatControlsSkeleton } from "@/components/Skeleton";
@@ -25,6 +25,7 @@ export default function ChatPage() {
   const [status, setStatus] = useState("");
   const [finding, setFinding] = useState(false);
   const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [partnerId, setPartnerId] = useState<string | null>(null);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
   const [lastMode, setLastMode] = useState<"random" | "interest">("random");
@@ -362,6 +363,7 @@ export default function ChatPage() {
     const data = await res.json();
     if (data.roomId) {
       setPartnerName(data.partnerName ?? null);
+      setPartnerId(data.partnerId ?? null);
       setStatus(`Matched with ${data.partnerName ?? "Anonymous"}, say hi!`);
       setRoomId(data.roomId);
       stopPolling();
@@ -401,6 +403,7 @@ export default function ChatPage() {
           if (data.roomId) {
             clearQueueTimeout();
             setPartnerName(data.partnerName ?? null);
+            setPartnerId(data.partnerId ?? null);
             setStatus(
               `Matched with ${data.partnerName ?? "Anonymous"}, say hi!`
             );
@@ -470,6 +473,42 @@ export default function ChatPage() {
         type: 'error',
         title: 'Report Failed',
         message: 'Unable to submit report. Please try again.',
+        duration: 4000
+      });
+    }
+  }
+
+  async function addFriend() {
+    if (!partnerId || !myId) return;
+
+    try {
+      const response = await fetch("/api/friends", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: partnerId }),
+      });
+
+      if (response.ok) {
+        addToast({
+          type: 'success',
+          title: 'Friend Request Sent',
+          message: 'Your friend request has been sent!',
+          duration: 4000
+        });
+      } else {
+        const error = await response.json();
+        addToast({
+          type: 'error',
+          title: 'Request Failed',
+          message: error.error || 'Failed to send friend request',
+          duration: 4000
+        });
+      }
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Request Failed',
+        message: 'Failed to send friend request',
         duration: 4000
       });
     }
@@ -595,6 +634,16 @@ export default function ChatPage() {
               {/* Chat Actions */}
               {roomId && (
                 <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-end sm:justify-start">
+                  <button
+                    className="btn btn-ghost flex items-center gap-1 sm:gap-2 text-dark-300 hover:text-green-400 group text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 flex-1 sm:flex-none"
+                    onClick={addFriend}
+                    disabled={!partnerId}
+                    title={!partnerId ? "Partner ID not available" : "Add as friend"}
+                  >
+                    <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform duration-200 flex-shrink-0" /> 
+                    <span className="hidden sm:inline">Add Friend</span>
+                    <span className="sm:hidden">Add</span>
+                  </button>
                   <button
                     className="btn btn-ghost flex items-center gap-1 sm:gap-2 text-dark-300 hover:text-primary-400 group text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 flex-1 sm:flex-none"
                     onClick={nextChat}

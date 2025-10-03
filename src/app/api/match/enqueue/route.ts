@@ -228,6 +228,7 @@ export async function POST(req: NextRequest) {
         queued: false,
         roomId,
         partnerName: bestCandidate.sillyName ?? "Anonymous",
+        partnerId: bestCandidate.uid,
       });
     }
 

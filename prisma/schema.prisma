@@ -30,6 +30,9 @@ model User {
   reports          Report[]         @relation("reportsByUser")
   Session          Session[]
   subscriptions    Subscription[]
+  friendsInitiated Friend[]         @relation("friendRequester")
+  friendsReceived  Friend[]         @relation("friendReceiver")
+  friendMessages   FriendMessage[]  @relation("friendMessageAuthor")
 }
 
 model Interest {
@@ -96,6 +99,30 @@ model Report {
   reporter       User     @relation("reportsByUser", fields: [reporterId], references: [id])
 }
 
+model Friend {
+  id          String   @id @default(cuid())
+  requesterId String
+  receiverId  String
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  requester   User     @relation("friendRequester", fields: [requesterId], references: [id])
+  receiver    User     @relation("friendReceiver", fields: [receiverId], references: [id])
+  messages    FriendMessage[]
+
+  @@unique([requesterId, receiverId])
+}
+
+model FriendMessage {
+  id        String   @id @default(cuid())
+  authorId  String
+  friendId  String
+  text      String
+  createdAt DateTime @default(now())
+  author    User     @relation("friendMessageAuthor", fields: [authorId], references: [id])
+  friend    Friend   @relation(fields: [friendId], references: [id])
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -134,4 +161,11 @@ enum Gender {
   Male
   Female
   Undisclosed
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  BLOCKED
 }
