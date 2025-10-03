@@ -129,6 +129,7 @@ export async function POST(req: NextRequest) {
         queued: false,
         roomId,
         partnerName: otherUser.sillyName ?? "Anonymous",
+        partnerId: other,
       });
     }
 

@@ -27,10 +27,16 @@ export async function GET(req: NextRequest) {
   });
 
   let partnerName = "Anonymous";
+  let partnerId = null;
   if (match) {
-    if (match.initiatorId === uid) partnerName = match.joiner.sillyName || "Anonymous"; 
-    else partnerName = match.initiator.sillyName || "Anonymous";
+    if (match.initiatorId === uid) {
+      partnerName = match.joiner.sillyName || "Anonymous";
+      partnerId = match.joiner.id;
+    } else {
+      partnerName = match.initiator.sillyName || "Anonymous";
+      partnerId = match.initiator.id;
+    }
   }
 
-  return NextResponse.json({ roomId, partnerName });
+  return NextResponse.json({ roomId, partnerName, partnerId });
 }
