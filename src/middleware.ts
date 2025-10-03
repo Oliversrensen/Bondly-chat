@@ -52,7 +52,7 @@ export function middleware(request: NextRequest) {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https: blob:",
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.googletagmanager.com https://www.google.com/ccm/ https://www.google.com/ccm/collect wss: ws:",
+    "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.googletagmanager.com https://www.google.com/ccm/ https://www.google.com/ccm/collect https://bondly-websocket.onrender.com wss: ws:",
     "frame-src 'self' https://accounts.google.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net",
     "child-src 'self' https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net",
     "object-src 'none'",

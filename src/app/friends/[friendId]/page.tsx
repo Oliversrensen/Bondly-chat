@@ -111,7 +111,7 @@ export default function FriendChatPage() {
     if (!myId || !friendId) return;
 
     const wsUrl = process.env.NODE_ENV === 'production' 
-      ? process.env.NEXT_PUBLIC_WS_URL || "wss://your-domain.com"
+      ? process.env.NEXT_PUBLIC_WS_URL || "https://bondly-websocket.onrender.com"
       : "ws://localhost:3001";
     
     socketRef.current = io(wsUrl, {
