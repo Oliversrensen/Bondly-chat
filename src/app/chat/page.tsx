@@ -30,6 +30,7 @@ export default function ChatPage() {
   const [lastMode, setLastMode] = useState<"random" | "interest">("random");
   const [showLeaveNotification, setShowLeaveNotification] = useState(false);
   const [wasTypingWhenLeft, setWasTypingWhenLeft] = useState(false);
+  const [lastMessageCount, setLastMessageCount] = useState(0);
 
   const [genderFilter, setGenderFilter] = useState<"MALE" | "FEMALE" | null>(
     null
@@ -140,7 +141,11 @@ export default function ChatPage() {
     }
 
     s.on("message", (m: ChatMessage) => {
-      setMessages((prev) => [...prev, m]);
+      setMessages((prev) => {
+        const newMessages = [...prev, m];
+        setLastMessageCount(prev.length);
+        return newMessages;
+      });
     });
     s.on("typing", () => setPartnerTyping(true));
     s.on("stop_typing", () => setPartnerTyping(false));
@@ -481,6 +486,7 @@ export default function ChatPage() {
     setShowLeaveNotification(false);
     setWasTypingWhenLeft(false);
     setPartnerTyping(false);
+    setLastMessageCount(0);
     stopPolling();
     clearQueueTimeout();
     
@@ -682,11 +688,11 @@ export default function ChatPage() {
                 <div className="space-y-4">
                   {messages.map((m, i) => {
                     const mine = m.authorId && myId ? m.authorId === myId : false;
+                    const isNewMessage = i >= lastMessageCount;
                     return (
                       <div
-                        key={i}
-                        className={`flex ${mine ? "justify-end" : "justify-start"} animate-slide-in-up`}
-                        style={{ animationDelay: `${i * 0.1}s` }}
+                        key={`${m.at}-${i}`}
+                        className={`flex ${mine ? "justify-end" : "justify-start"} ${isNewMessage ? "animate-slide-in-up" : ""}`}
                       >
                         <div className={`message-bubble ${mine ? "own" : "other"} max-w-[85%] sm:max-w-xs`}>
                           <div className="flex items-start justify-between mb-2 gap-2">
