@@ -48,12 +48,13 @@ export function middleware(request: NextRequest) {
   // Content Security Policy for better security
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https: blob:",
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://www.google-analytics.com https://analytics.google.com wss: ws:",
-    "frame-src 'self' https://accounts.google.com",
+    "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.googletagmanager.com https://www.google.com/ccm/ wss: ws:",
+    "frame-src 'self' https://accounts.google.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net",
+    "child-src 'self' https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
