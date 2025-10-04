@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/Toast";
 import { UserPlus, MessageCircle, Users, UserCheck, UserX } from "lucide-react";
+import ProfilePicture from "@/components/ProfilePicture";
 
 type Friend = {
   id: string;
@@ -12,6 +13,10 @@ type Friend = {
     name: string | null;
     sillyName: string | null;
     image: string | null;
+    isPro: boolean;
+    profilePicture: string | null;
+    profilePictureType: string | null;
+    generatedAvatar: string | null;
   };
   createdAt: string;
 };
@@ -23,6 +28,10 @@ type FriendRequest = {
     name: string | null;
     sillyName: string | null;
     image: string | null;
+    isPro: boolean;
+    profilePicture: string | null;
+    profilePictureType: string | null;
+    generatedAvatar: string | null;
   };
   createdAt: string;
 };
@@ -165,9 +174,11 @@ export default function FriendsPage() {
                       className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 hover:bg-white/20 transition-colors"
                     >
                       <div className="flex items-center space-x-4 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                          {getDisplayName(friend.friend).charAt(0).toUpperCase()}
-                        </div>
+                        <ProfilePicture 
+                          user={friend.friend} 
+                          size="md" 
+                          showProBadge={friend.friend.isPro}
+                        />
                         <div>
                           <h3 className="text-white font-semibold">
                             {getDisplayName(friend.friend)}
@@ -210,9 +221,11 @@ export default function FriendsPage() {
                       className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20"
                     >
                       <div className="flex items-center space-x-4 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                          {getDisplayName(request.requester).charAt(0).toUpperCase()}
-                        </div>
+                        <ProfilePicture 
+                          user={request.requester} 
+                          size="md" 
+                          showProBadge={request.requester.isPro}
+                        />
                         <div>
                           <h3 className="text-white font-semibold">
                             {getDisplayName(request.requester)}

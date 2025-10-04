@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useToast } from "@/components/Toast";
 import { Send, ArrowLeft, Users, MoreVertical } from "lucide-react";
 import io, { Socket } from "socket.io-client";
+import ProfilePicture from "@/components/ProfilePicture";
 
 type FriendMessage = {
   id: string;
@@ -27,6 +28,10 @@ type Friend = {
     name: string | null;
     sillyName: string | null;
     image: string | null;
+    isPro: boolean;
+    profilePicture: string | null;
+    profilePictureType: string | null;
+    generatedAvatar: string | null;
   };
 };
 
@@ -266,9 +271,12 @@ export default function FriendChatPage() {
           </button>
           
           <div className="relative">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-xl ring-4 ring-white/10">
-              {getDisplayName(friend.friend).charAt(0).toUpperCase()}
-            </div>
+            <ProfilePicture 
+              user={friend.friend} 
+              size="lg" 
+              showProBadge={friend.friend.isPro}
+              className="ring-4 ring-white/10"
+            />
             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-slate-900"></div>
           </div>
           
@@ -357,9 +365,12 @@ export default function FriendChatPage() {
                 </div>
                 
                 <div className="space-y-3">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-xl ring-4 ring-white/10 mx-auto">
-                    <Users className="w-8 h-8" />
-                  </div>
+                  <ProfilePicture 
+                    user={friend.friend} 
+                    size="xl" 
+                    showProBadge={friend.friend.isPro}
+                    className="mx-auto ring-4 ring-white/10"
+                  />
                   <p className="text-gray-200 text-xl font-bold">Start your conversation!</p>
                   <p className="text-gray-400 text-sm">Send your first message to {getDisplayName(friend.friend)}</p>
                 </div>

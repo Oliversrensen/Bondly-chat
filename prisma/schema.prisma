@@ -20,6 +20,9 @@ model User {
   sillyName        String?
   emailVerified    DateTime?
   isAdmin          Boolean          @default(false)
+  profilePicture   String?          // URL for uploaded profile picture
+  profilePictureType String?        // 'uploaded' or 'generated'
+  generatedAvatar  String?          // For storing generated avatar data
   Account          Account[]
   blocksReceived   Block[]          @relation("blocked")
   blocksInitiated  Block[]          @relation("blocker")

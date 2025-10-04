@@ -23,7 +23,11 @@ export async function GET() {
             id: true,
             name: true,
             sillyName: true,
-            image: true
+            image: true,
+            isPro: true,
+            profilePicture: true,
+            profilePictureType: true,
+            generatedAvatar: true
           }
         },
         receiver: {
@@ -31,7 +35,11 @@ export async function GET() {
             id: true,
             name: true,
             sillyName: true,
-            image: true
+            image: true,
+            isPro: true,
+            profilePicture: true,
+            profilePictureType: true,
+            generatedAvatar: true
           }
         }
       }
