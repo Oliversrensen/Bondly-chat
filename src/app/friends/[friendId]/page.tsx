@@ -133,6 +133,12 @@ export default function FriendChatPage() {
 
     socket.on("friend_message", (message: FriendMessage) => {
       setMessages(prev => {
+        // Check if message already exists to prevent duplicates
+        const messageExists = prev.some(msg => msg.id === message.id);
+        if (messageExists) {
+          return prev;
+        }
+        
         const newMessages = [...prev, message];
         setLastMessageCount(prev.length);
         return newMessages;
@@ -176,8 +182,8 @@ export default function FriendChatPage() {
 
       if (response.ok) {
         const messageData = await response.json();
-        setMessages(prev => [...prev, messageData.message]);
         
+        // Don't add to state here - let WebSocket handle it for consistency
         // Emit to socket for real-time delivery
         if (socketRef.current) {
           socketRef.current.emit("send_friend_message", {
