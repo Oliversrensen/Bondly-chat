@@ -27,6 +27,10 @@ export async function GET(req: NextRequest) {
       sillyName: true,
       gender: true,
       isPro: true,
+      selectedAvatarId: true,
+      profilePicture: true,
+      profilePictureType: true,
+      generatedAvatar: true,
       interests: { include: { interest: true } },
     },
   });
@@ -38,6 +42,10 @@ export async function GET(req: NextRequest) {
       gender: "Undisclosed",
       interests: [],
       isPro: false,
+      selectedAvatarId: null,
+      profilePicture: null,
+      profilePictureType: null,
+      generatedAvatar: null,
     });
   }
 
@@ -48,6 +56,10 @@ export async function GET(req: NextRequest) {
     gender: user.gender,
     interests,
     isPro: user.isPro,
+    selectedAvatarId: user.selectedAvatarId,
+    profilePicture: user.profilePicture,
+    profilePictureType: user.profilePictureType,
+    generatedAvatar: user.generatedAvatar,
   });
 }
 
@@ -140,6 +152,10 @@ export async function PATCH(req: NextRequest) {
       sillyName: true,
       gender: true,
       isPro: true,
+      selectedAvatarId: true,
+      profilePicture: true,
+      profilePictureType: true,
+      generatedAvatar: true,
       interests: { include: { interest: true } },
     },
   });
@@ -150,5 +166,9 @@ export async function PATCH(req: NextRequest) {
     gender: user?.gender ?? gender ?? "Undisclosed",
     interests: user?.interests.map((i) => i.interest.name) ?? tags,
     isPro: user?.isPro ?? false,
+    selectedAvatarId: user?.selectedAvatarId ?? null,
+    profilePicture: user?.profilePicture ?? null,
+    profilePictureType: user?.profilePictureType ?? null,
+    generatedAvatar: user?.generatedAvatar ?? null,
   });
 }
