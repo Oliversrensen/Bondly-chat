@@ -32,6 +32,7 @@ type Friend = {
     profilePicture: string | null;
     profilePictureType: string | null;
     generatedAvatar: string | null;
+    selectedAvatarId: string | null;
   };
 };
 

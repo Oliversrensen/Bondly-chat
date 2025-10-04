@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, User, Settings } from "lucide-react";
+import ProfilePicture from "@/components/ProfilePicture";
+import AvatarSelector from "@/components/AvatarSelector";
+import { useToast } from "@/components/Toast";
 
 export default function ProfilePage() {
   const [gender, setGender] = useState("Undisclosed");
@@ -9,6 +12,9 @@ export default function ProfilePage() {
   const [sillyName, setSillyName] = useState("");
   const [isPro, setIsPro] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [selectedAvatarId, setSelectedAvatarId] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const { addToast } = useToast();
 
   // Load profile
   useEffect(() => {
@@ -18,6 +24,8 @@ export default function ProfilePage() {
       if (Array.isArray(me?.interests)) setSelected(me.interests);
       if (me?.sillyName) setSillyName(me.sillyName);
       if (me?.isPro) setIsPro(true);
+      if (me?.selectedAvatarId) setSelectedAvatarId(me.selectedAvatarId);
+      setUser(me);
     })();
   }, []);
 
@@ -34,6 +42,37 @@ export default function ProfilePage() {
     setSelected((prev) => [...prev, norm]);
     setNewTag("");
   }
+
+  const handleAvatarSelect = async (avatarId: string) => {
+    try {
+      const response = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarId })
+      });
+
+      if (response.ok) {
+        setSelectedAvatarId(avatarId);
+        addToast({
+          type: 'success',
+          title: 'Avatar Updated',
+          message: 'Your avatar has been updated successfully!'
+        });
+      } else {
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to update avatar'
+        });
+      }
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to update avatar'
+      });
+    }
+  };
 
   function removeTag(tag: string) {
     setSelected((prev) => prev.filter((t) => t !== tag));
@@ -81,6 +120,41 @@ export default function ProfilePage() {
           <p className="text-dark-300 text-lg">
             Manage your profile settings and preferences to enhance your chat experience
           </p>
+        </div>
+
+        {/* Avatar Selection */}
+        <div className="card card-elevated mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
+              <User className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-primary-400">Profile Picture</h3>
+              <p className="text-sm text-dark-400">Choose your avatar from our collection</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-6 mb-6">
+            <ProfilePicture 
+              user={user || {}} 
+              size="xl" 
+              showProBadge={isPro}
+            />
+            <div>
+              <h4 className="text-white font-medium text-lg">
+                {sillyName || 'Anonymous'}
+              </h4>
+              <p className="text-dark-300 text-sm">
+                {isPro ? 'Pro Member' : 'Free Member'}
+              </p>
+            </div>
+          </div>
+          
+          <AvatarSelector 
+            selectedAvatarId={selectedAvatarId}
+            onSelect={handleAvatarSelect}
+            className="justify-center"
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

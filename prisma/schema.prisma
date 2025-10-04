@@ -23,6 +23,7 @@ model User {
   profilePicture   String?          // URL for uploaded profile picture
   profilePictureType String?        // 'uploaded' or 'generated'
   generatedAvatar  String?          // For storing generated avatar data
+  selectedAvatarId String?          // ID of selected preset avatar
   Account          Account[]
   blocksReceived   Block[]          @relation("blocked")
   blocksInitiated  Block[]          @relation("blocker")

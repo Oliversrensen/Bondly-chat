@@ -17,6 +17,7 @@ type Friend = {
     profilePicture: string | null;
     profilePictureType: string | null;
     generatedAvatar: string | null;
+    selectedAvatarId: string | null;
   };
   createdAt: string;
 };
@@ -32,6 +33,7 @@ type FriendRequest = {
     profilePicture: string | null;
     profilePictureType: string | null;
     generatedAvatar: string | null;
+    selectedAvatarId: string | null;
   };
   createdAt: string;
 };

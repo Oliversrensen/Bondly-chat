@@ -1,48 +1,95 @@
-// Avatar generator for free users - creates random silly faces
-export interface AvatarConfig {
-  eyes: string[];
-  mouths: string[];
-  colors: string[];
+// Avatar generator with preset vector faces
+export interface AvatarPreset {
+  id: string;
+  name: string;
+  svg: string;
+  color: string;
 }
 
-// Unicode-safe base64 encoding
-function unicodeBtoa(str: string): string {
-  return btoa(unescape(encodeURIComponent(str)));
-}
-
-export const AVATAR_CONFIG: AvatarConfig = {
-  eyes: ['👀', '😊', '😎', '🤪', '😍', '🥺', '😏', '🤔', '😴', '😮'],
-  mouths: ['😋', '😜', '🤤', '😬', '😑', '😤', '😯', '😵', '🤯', '😱'],
-  colors: [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
-    '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2'
-  ]
-};
+export const AVATAR_PRESETS: AvatarPreset[] = [
+  {
+    id: 'happy',
+    name: 'Happy',
+    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M24 40 Q32 50 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    color: '#FF6B6B'
+  },
+  {
+    id: 'wink',
+    name: 'Wink',
+    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><path d="M46 28 Q50 28 50 32 Q50 36 46 36" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M24 40 Q32 50 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    color: '#4ECDC4'
+  },
+  {
+    id: 'cool',
+    name: 'Cool',
+    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M20 36 Q32 44 44 36" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    color: '#45B7D1'
+  },
+  {
+    id: 'surprised',
+    name: 'Surprised',
+    svg: `<circle cx="32" cy="28" r="4" fill="#2D3748"/><circle cx="48" cy="28" r="4" fill="#2D3748"/><circle cx="40" cy="42" r="3" fill="#2D3748"/>`,
+    color: '#96CEB4'
+  },
+  {
+    id: 'sleepy',
+    name: 'Sleepy',
+    svg: `<path d="M28 28 Q32 30 36 28" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M44 28 Q48 30 52 28" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M24 40 Q32 46 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    color: '#FFEAA7'
+  },
+  {
+    id: 'laughing',
+    name: 'Laughing',
+    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M20 36 Q32 52 44 36" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    color: '#DDA0DD'
+  },
+  {
+    id: 'thinking',
+    name: 'Thinking',
+    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M24 40 Q32 46 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="50" cy="50" r="2" fill="#2D3748"/>`,
+    color: '#98D8C8'
+  },
+  {
+    id: 'excited',
+    name: 'Excited',
+    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M24 40 Q32 48 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M20 20 Q32 16 44 20" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    color: '#F7DC6F'
+  },
+  {
+    id: 'neutral',
+    name: 'Neutral',
+    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M24 40 Q32 44 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    color: '#BB8FCE'
+  },
+  {
+    id: 'mysterious',
+    name: 'Mysterious',
+    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M24 40 Q32 48 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M20 20 Q32 18 44 20" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    color: '#85C1E9'
+  }
+];
 
 export function generateRandomAvatar(): {
-  emoji: string;
-  backgroundColor: string;
+  preset: AvatarPreset;
   id: string;
 } {
-  const randomEyes = AVATAR_CONFIG.eyes[Math.floor(Math.random() * AVATAR_CONFIG.eyes.length)];
-  const randomMouth = AVATAR_CONFIG.mouths[Math.floor(Math.random() * AVATAR_CONFIG.mouths.length)];
-  const randomColor = AVATAR_CONFIG.colors[Math.floor(Math.random() * AVATAR_CONFIG.colors.length)];
-  
-  // Create a unique ID for this avatar combination
-  const id = `${randomEyes}-${randomMouth}-${randomColor.slice(1)}`;
+  const randomPreset = AVATAR_PRESETS[Math.floor(Math.random() * AVATAR_PRESETS.length)];
   
   return {
-    emoji: `${randomEyes}${randomMouth}`,
-    backgroundColor: randomColor,
-    id
+    preset: randomPreset,
+    id: randomPreset.id
   };
+}
+
+export function getAvatarPresetById(id: string): AvatarPreset | null {
+  return AVATAR_PRESETS.find(preset => preset.id === id) || null;
 }
 
 export function getAvatarForUser(user: {
   profilePicture?: string | null;
   profilePictureType?: string | null;
   generatedAvatar?: string | null;
+  selectedAvatarId?: string | null;
   isPro?: boolean;
   sillyName?: string | null;
   name?: string | null;
@@ -60,7 +107,20 @@ export function getAvatarForUser(user: {
     };
   }
   
-  // If user has a generated avatar stored
+  // If user has a selected avatar preset
+  if (user.selectedAvatarId) {
+    const preset = getAvatarPresetById(user.selectedAvatarId);
+    if (preset) {
+      const svg = createAvatarSVG(preset);
+      return {
+        type: 'generated',
+        src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
+        alt: `${preset.name} avatar`
+      };
+    }
+  }
+  
+  // If user has a generated avatar stored (legacy)
   if (user.generatedAvatar) {
     try {
       const avatarData = JSON.parse(user.generatedAvatar);
@@ -74,33 +134,34 @@ export function getAvatarForUser(user: {
     }
   }
   
-  // Generate new avatar for free users or if no avatar exists
+  // Generate new random avatar for free users or if no avatar exists
   const avatar = generateRandomAvatar();
-  const svg = createAvatarSVG(avatar.emoji, avatar.backgroundColor);
+  const svg = createAvatarSVG(avatar.preset);
   
   return {
     type: 'generated',
     src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
-    alt: 'Generated avatar'
+    alt: `${avatar.preset.name} avatar`
   };
 }
 
-function createAvatarSVG(emoji: string, backgroundColor: string): string {
+function createAvatarSVG(preset: AvatarPreset): string {
   return `
     <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="32" cy="32" r="32" fill="${backgroundColor}"/>
-      <text x="32" y="40" text-anchor="middle" font-size="24" font-family="Arial, sans-serif">${emoji}</text>
+      <circle cx="32" cy="32" r="32" fill="${preset.color}"/>
+      ${preset.svg}
     </svg>
   `.trim();
 }
 
 export function generateAvatarData(): string {
   const avatar = generateRandomAvatar();
-  const svg = createAvatarSVG(avatar.emoji, avatar.backgroundColor);
+  const svg = createAvatarSVG(avatar.preset);
   return JSON.stringify({
-    emoji: avatar.emoji,
-    backgroundColor: avatar.backgroundColor,
-    svg: svg, // Store raw SVG instead of base64
+    presetId: avatar.preset.id,
+    presetName: avatar.preset.name,
+    color: avatar.preset.color,
+    svg: svg,
     id: avatar.id
   });
 }

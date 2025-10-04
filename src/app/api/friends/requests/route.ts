@@ -25,7 +25,8 @@ export async function GET() {
             isPro: true,
             profilePicture: true,
             profilePictureType: true,
-            generatedAvatar: true
+            generatedAvatar: true,
+            selectedAvatarId: true
           }
         }
       },

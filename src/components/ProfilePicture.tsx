@@ -8,6 +8,7 @@ interface ProfilePictureProps {
     profilePicture?: string | null;
     profilePictureType?: string | null;
     generatedAvatar?: string | null;
+    selectedAvatarId?: string | null;
     isPro?: boolean;
     sillyName?: string | null;
     name?: string | null;
