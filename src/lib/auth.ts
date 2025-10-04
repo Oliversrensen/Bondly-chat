@@ -35,14 +35,18 @@ export const authConfig: NextAuthConfig = {
     async createUser({ user }) {
       // Assign a random avatar when a new user is created
       try {
+        console.log('Creating user with ID:', user.id);
         const avatar = generateRandomAvatar();
-        await prisma.user.update({
+        console.log('Generated avatar:', avatar.preset.id, avatar.preset.name);
+        
+        const result = await prisma.user.update({
           where: { id: user.id },
           data: {
             selectedAvatarId: avatar.preset.id,
             profilePictureType: 'generated'
           }
         });
+        console.log('Updated user with avatar:', result.selectedAvatarId);
       } catch (error) {
         console.error('Error assigning random avatar:', error);
       }
