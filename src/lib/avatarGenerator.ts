@@ -39,6 +39,8 @@ export function getAvatarForUser(user: {
   profilePictureType?: string | null;
   generatedAvatar?: string | null;
   isPro?: boolean;
+  sillyName?: string | null;
+  name?: string | null;
 }): {
   type: 'uploaded' | 'generated';
   src: string;

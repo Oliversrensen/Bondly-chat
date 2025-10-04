@@ -9,6 +9,8 @@ interface ProfilePictureProps {
     profilePictureType?: string | null;
     generatedAvatar?: string | null;
     isPro?: boolean;
+    sillyName?: string | null;
+    name?: string | null;
   };
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
