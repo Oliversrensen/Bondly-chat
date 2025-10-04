@@ -5,6 +5,11 @@ export interface AvatarConfig {
   colors: string[];
 }
 
+// Unicode-safe base64 encoding
+function unicodeBtoa(str: string): string {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
 export const AVATAR_CONFIG: AvatarConfig = {
   eyes: ['👀', '😊', '😎', '🤪', '😍', '🥺', '😏', '🤔', '😴', '😮'],
   mouths: ['😋', '😜', '🤤', '😬', '😑', '😤', '😯', '😵', '🤯', '😱'],
@@ -61,7 +66,7 @@ export function getAvatarForUser(user: {
       const avatarData = JSON.parse(user.generatedAvatar);
       return {
         type: 'generated',
-        src: `data:image/svg+xml;base64,${avatarData.svg}`,
+        src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(avatarData.svg)}`,
         alt: 'Generated avatar'
       };
     } catch {
@@ -75,7 +80,7 @@ export function getAvatarForUser(user: {
   
   return {
     type: 'generated',
-    src: `data:image/svg+xml;base64,${btoa(svg)}`,
+    src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
     alt: 'Generated avatar'
   };
 }
@@ -95,7 +100,7 @@ export function generateAvatarData(): string {
   return JSON.stringify({
     emoji: avatar.emoji,
     backgroundColor: avatar.backgroundColor,
-    svg: btoa(svg),
+    svg: svg, // Store raw SVG instead of base64
     id: avatar.id
   });
 }
