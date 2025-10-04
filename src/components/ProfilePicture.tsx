@@ -45,23 +45,20 @@ export default function ProfilePicture({
           className={`${sizeClass} rounded-full object-cover border-2 border-white/20 shadow-lg`}
           onError={() => setImageError(true)}
         />
+      ) : avatar.type === 'generated' ? (
+        <img
+          src={avatar.src}
+          alt={avatar.alt}
+          className={`${sizeClass} rounded-full border-2 border-white/20 shadow-lg`}
+        />
       ) : (
         <div 
           className={`${sizeClass} rounded-full flex items-center justify-center border-2 border-white/20 shadow-lg`}
-          style={{
-            backgroundImage: avatar.type === 'generated' ? `url(${avatar.src})` : undefined,
-            backgroundColor: avatar.type === 'generated' ? undefined : '#6366f1'
-          }}
+          style={{ backgroundColor: '#6366f1' }}
         >
-          {avatar.type === 'generated' ? (
-            <span className="text-white font-bold">
-              {user.sillyName?.charAt(0).toUpperCase() || '?'}
-            </span>
-          ) : (
-            <span className="text-white font-bold">
-              {user.sillyName?.charAt(0).toUpperCase() || '?'}
-            </span>
-          )}
+          <span className="text-white font-bold">
+            {user.sillyName?.charAt(0).toUpperCase() || '?'}
+          </span>
         </div>
       )}
       
