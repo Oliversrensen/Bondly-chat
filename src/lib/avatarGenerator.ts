@@ -10,61 +10,61 @@ export const AVATAR_PRESETS: AvatarPreset[] = [
   {
     id: 'happy',
     name: 'Happy',
-    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M24 40 Q32 50 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    svg: `<circle cx="24" cy="24" r="2" fill="#2D3748"/><circle cx="40" cy="24" r="2" fill="#2D3748"/><path d="M20 36 Q32 44 44 36" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>`,
     color: '#FF6B6B'
   },
   {
     id: 'wink',
     name: 'Wink',
-    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><path d="M46 28 Q50 28 50 32 Q50 36 46 36" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M24 40 Q32 50 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    svg: `<circle cx="24" cy="24" r="2" fill="#2D3748"/><path d="M38 24 Q42 24 42 28 Q42 32 38 32" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M20 36 Q32 44 44 36" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>`,
     color: '#4ECDC4'
   },
   {
     id: 'cool',
     name: 'Cool',
-    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M20 36 Q32 44 44 36" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    svg: `<circle cx="24" cy="24" r="2" fill="#2D3748"/><circle cx="40" cy="24" r="2" fill="#2D3748"/><path d="M20 32 Q32 40 44 32" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>`,
     color: '#45B7D1'
   },
   {
     id: 'surprised',
     name: 'Surprised',
-    svg: `<circle cx="32" cy="28" r="4" fill="#2D3748"/><circle cx="48" cy="28" r="4" fill="#2D3748"/><circle cx="40" cy="42" r="3" fill="#2D3748"/>`,
+    svg: `<circle cx="24" cy="24" r="3" fill="#2D3748"/><circle cx="40" cy="24" r="3" fill="#2D3748"/><circle cx="32" cy="40" r="2" fill="#2D3748"/>`,
     color: '#96CEB4'
   },
   {
     id: 'sleepy',
     name: 'Sleepy',
-    svg: `<path d="M28 28 Q32 30 36 28" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M44 28 Q48 30 52 28" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M24 40 Q32 46 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    svg: `<path d="M22 24 Q24 26 26 24" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M38 24 Q40 26 42 24" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M20 36 Q32 42 44 36" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>`,
     color: '#FFEAA7'
   },
   {
     id: 'laughing',
     name: 'Laughing',
-    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M20 36 Q32 52 44 36" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    svg: `<circle cx="24" cy="24" r="2" fill="#2D3748"/><circle cx="40" cy="24" r="2" fill="#2D3748"/><path d="M20 36 Q32 48 44 36" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>`,
     color: '#DDA0DD'
   },
   {
     id: 'thinking',
     name: 'Thinking',
-    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M24 40 Q32 46 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="50" cy="50" r="2" fill="#2D3748"/>`,
+    svg: `<circle cx="24" cy="24" r="2" fill="#2D3748"/><circle cx="40" cy="24" r="2" fill="#2D3748"/><path d="M20 36 Q32 42 44 36" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="46" cy="46" r="1.5" fill="#2D3748"/>`,
     color: '#98D8C8'
   },
   {
     id: 'excited',
     name: 'Excited',
-    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M24 40 Q32 48 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M20 20 Q32 16 44 20" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    svg: `<circle cx="24" cy="24" r="2" fill="#2D3748"/><circle cx="40" cy="24" r="2" fill="#2D3748"/><path d="M20 36 Q32 44 44 36" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M18 20 Q32 16 46 20" stroke="#2D3748" stroke-width="1.5" fill="none" stroke-linecap="round"/>`,
     color: '#F7DC6F'
   },
   {
     id: 'neutral',
     name: 'Neutral',
-    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M24 40 Q32 44 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    svg: `<circle cx="24" cy="24" r="2" fill="#2D3748"/><circle cx="40" cy="24" r="2" fill="#2D3748"/><path d="M20 36 Q32 40 44 36" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>`,
     color: '#BB8FCE'
   },
   {
     id: 'mysterious',
     name: 'Mysterious',
-    svg: `<circle cx="32" cy="28" r="3" fill="#2D3748"/><circle cx="48" cy="28" r="3" fill="#2D3748"/><path d="M24 40 Q32 48 40 40" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M20 20 Q32 18 44 20" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    svg: `<circle cx="24" cy="24" r="2" fill="#2D3748"/><circle cx="40" cy="24" r="2" fill="#2D3748"/><path d="M20 36 Q32 44 44 36" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M18 20 Q32 18 46 20" stroke="#2D3748" stroke-width="1.5" fill="none" stroke-linecap="round"/>`,
     color: '#85C1E9'
   }
 ];

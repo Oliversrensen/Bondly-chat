@@ -2,6 +2,7 @@ import NextAuth, { type NextAuthConfig } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./prisma";
+import { generateRandomAvatar } from "./avatarGenerator";
 
 // Ensure AUTH_SECRET is set
 if (!process.env.AUTH_SECRET) {
@@ -30,6 +31,23 @@ export const authConfig: NextAuthConfig = {
       checks: ["pkce", "state"],
     }),
   ],
+  events: {
+    async createUser({ user }) {
+      // Assign a random avatar when a new user is created
+      try {
+        const avatar = generateRandomAvatar();
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            selectedAvatarId: avatar.preset.id,
+            profilePictureType: 'generated'
+          }
+        });
+      } catch (error) {
+        console.error('Error assigning random avatar:', error);
+      }
+    },
+  },
   callbacks: {
     async jwt({ token, user }) { if (user?.id) token.sub = user.id; return token; },
     async session({ session, token }) { if (session.user && token.sub) (session.user as any).id = token.sub; return session; },
