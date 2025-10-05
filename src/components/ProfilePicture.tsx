@@ -33,7 +33,12 @@ export default function ProfilePicture({
 }: ProfilePictureProps) {
   const [imageError, setImageError] = useState(false);
   
+  // Debug logging
+  console.log('ProfilePicture received user data:', user);
+  
   const avatar = getAvatarForUser(user);
+  console.log('ProfilePicture generated avatar:', avatar);
+  
   const sizeClass = sizeClasses[size];
   
   return (
