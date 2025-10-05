@@ -142,8 +142,13 @@ export default function ChatPage() {
     const s = io(process.env.NEXT_PUBLIC_WS_URL!, { transports: ["websocket"] });
     socketRef.current = s;
 
+    console.log('Session data:', session);
+    console.log('User ID:', session?.user?.id);
     if (session?.user?.id) {
+      console.log('Emitting identify with userId:', session.user.id);
       s.emit("identify", { userId: session.user.id });
+    } else {
+      console.log('No session or user ID available');
     }
 
     s.on("message", (m: ChatMessage) => {

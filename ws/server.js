@@ -238,8 +238,10 @@ io.on("connection", (socket) => {
   }
   
   socket.on("identify", async ({ userId }) => {
-    console.log('User identified with ID:', userId);
+    console.log('IDENTIFY EVENT RECEIVED - User identified with ID:', userId);
+    console.log('Socket ID:', socket.id);
     socketUsers.set(socket.id, userId);
+    console.log('Stored userId in socketUsers map');
     // User identified
     
     // Track active user with minimal Redis commands
@@ -274,6 +276,7 @@ io.on("connection", (socket) => {
     if (!roomId || !text) return;
 
     console.log('Message received from socket:', socket.id, 'userId from params:', userId);
+    console.log('Current socketUsers map:', Array.from(socketUsers.entries()));
     const storedUserId = socketUsers.get(socket.id);
     console.log('Stored userId for this socket:', storedUserId);
     
