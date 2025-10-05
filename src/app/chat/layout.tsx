@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: "Start anonymous conversations with strangers instantly. Join random chat rooms or connect based on shared interests.",
   },
   alternates: {
-    canonical: "/chat",
+    canonical: "https://bondly.chat/chat",
   },
 };
 

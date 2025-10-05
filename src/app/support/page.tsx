@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   alternates: {
-    canonical: "/support",
+    canonical: "https://bondly.chat/support",
   },
 };
 

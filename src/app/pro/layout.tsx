@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: "Unlock premium features with Bondly Pro: custom display names, gender filtering, priority matching, and enhanced security.",
   },
   alternates: {
-    canonical: "/pro",
+    canonical: "https://bondly.chat/pro",
   },
 };
 

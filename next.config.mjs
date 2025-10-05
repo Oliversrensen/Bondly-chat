@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  trailingSlash: false, // Explicitly set to prevent redirect issues
   experimental: {
     serverComponentsExternalPackages: ["@prisma/client"],
   },

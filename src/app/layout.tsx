@@ -58,9 +58,9 @@ export const metadata = {
   },
   metadataBase: new URL('https://bondly.chat'),
   alternates: {
-    canonical: '/',
+    canonical: 'https://bondly.chat/',
     languages: {
-      'en-US': '/',
+      'en-US': 'https://bondly.chat/',
     },
   },
   openGraph: {

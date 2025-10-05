@@ -4,6 +4,10 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const { nextUrl } = request
   
+  // Check if this is a bot/crawler (including Googlebot)
+  const userAgent = request.headers.get('user-agent') || ''
+  const isBot = /bot|crawler|spider|crawling/i.test(userAgent)
+  
   // Check for session token in cookies (both development and production)
   const sessionToken = request.cookies.get('authjs.session-token') || 
                       request.cookies.get('__Secure-authjs.session-token') ||
@@ -30,6 +34,10 @@ export function middleware(request: NextRequest) {
   
   // Allow access to public routes and public API routes
   if (isPublicRoute || isPublicApiRoute) {
+    response = NextResponse.next()
+  }
+  // If this is a bot, allow access to all pages without redirects
+  else if (isBot) {
     response = NextResponse.next()
   }
   // If on auth page and logged in, redirect to chat (not home)

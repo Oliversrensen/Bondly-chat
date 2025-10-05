@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     description: "Sign in to Bondly and start anonymous chatting with strangers. Quick and secure Google sign-in.",
   },
   alternates: {
-    canonical: "/auth",
+    canonical: "https://bondly.chat/auth",
   },
 };
 
