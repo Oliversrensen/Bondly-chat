@@ -746,14 +746,25 @@ export default function ChatPage() {
                     const displayName = mine ? myDisplayName : (m.sillyName && m.sillyName !== "Anonymous" ? m.sillyName : "Anonymous");
                     const timestamp = new Date(m.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     
+                    // Debug profile picture data
+                    if (i === 0) {
+                      console.log('Message profile picture data:', {
+                        profilePicture: m.profilePicture,
+                        profilePictureType: m.profilePictureType,
+                        generatedAvatar: m.generatedAvatar,
+                        selectedAvatarId: m.selectedAvatarId,
+                        sillyName: m.sillyName
+                      });
+                    }
+                    
                     return (
                       <div
                         key={`${m.at}-${i}`}
                         className={`flex ${mine ? "justify-end" : "justify-start"} ${isNewMessage ? "animate-slide-in-up" : ""}`}
                       >
-                        <div className={`flex ${mine ? "flex-row-reverse" : "flex-row"} items-end gap-3 max-w-[85%] sm:max-w-xs`}>
+                        <div className={`flex ${mine ? "flex-row-reverse" : "flex-row"} items-start gap-3 max-w-[85%] sm:max-w-xs`}>
                           {/* Profile Picture */}
-                          <div className="flex-shrink-0">
+                          <div className="flex-shrink-0 flex flex-col items-center">
                             <ProfilePicture
                               user={{
                                 profilePicture: m.profilePicture,
@@ -765,24 +776,23 @@ export default function ChatPage() {
                               }}
                               size="sm"
                             />
+                            {/* Name and Timestamp - positioned under profile picture */}
+                            <div className="flex flex-col items-center mt-1">
+                              <span className="text-xs font-semibold text-dark-300 text-center">
+                                {displayName}
+                              </span>
+                              <span className="text-xs text-dark-500 text-center">
+                                {timestamp}
+                              </span>
+                            </div>
                           </div>
                           
                           {/* Message Bubble */}
-                          <div className={`message-bubble ${mine ? "own" : "other"} flex-1`}>
+                          <div className={`message-bubble ${mine ? "own" : "other"} max-w-xs`}>
                             <div className="text-white leading-relaxed text-sm">
                               {m.text}
                             </div>
                           </div>
-                        </div>
-                        
-                        {/* Name and Timestamp - positioned under profile picture */}
-                        <div className={`flex flex-col ${mine ? "items-end mr-11" : "items-start ml-11"} mt-1`}>
-                          <span className="text-xs font-semibold text-dark-300">
-                            {displayName}
-                          </span>
-                          <span className="text-xs text-dark-500">
-                            {timestamp}
-                          </span>
                         </div>
                       </div>
                     );
