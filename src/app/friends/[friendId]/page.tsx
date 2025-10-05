@@ -52,10 +52,12 @@ export default function FriendChatPage() {
   const [friendTyping, setFriendTyping] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastMessageCount, setLastMessageCount] = useState(0);
+  const [isFriendOnline, setIsFriendOnline] = useState(false);
   
   const socketRef = useRef<Socket | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onlineStatusInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -64,6 +66,21 @@ export default function FriendChatPage() {
         top: messagesContainerRef.current.scrollHeight,
         behavior: "smooth"
       });
+    }
+  };
+
+  // Check if friend is online
+  const checkFriendOnlineStatus = async () => {
+    if (!friendId) return;
+    
+    try {
+      const response = await fetch(`/api/presence/check?userId=${friendId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsFriendOnline(data.isOnline);
+      }
+    } catch (error) {
+      console.error("Error checking friend online status:", error);
     }
   };
 
@@ -102,6 +119,9 @@ export default function FriendChatPage() {
           setMessages(messagesData.messages);
           setLastMessageCount(messagesData.messages.length);
         }
+
+        // Check initial online status
+        await checkFriendOnlineStatus();
       } catch (error) {
         console.error("Error loading friend data:", error);
         addToast({
@@ -116,6 +136,20 @@ export default function FriendChatPage() {
 
     loadFriendData();
   }, [myId, friendId, router, addToast]);
+
+  // Set up periodic online status checking
+  useEffect(() => {
+    if (!friendId) return;
+
+    // Check online status every 30 seconds
+    onlineStatusInterval.current = setInterval(checkFriendOnlineStatus, 30000);
+
+    return () => {
+      if (onlineStatusInterval.current) {
+        clearInterval(onlineStatusInterval.current);
+      }
+    };
+  }, [friendId]);
 
   // Socket connection for real-time messaging
   useEffect(() => {
@@ -169,6 +203,18 @@ export default function FriendChatPage() {
       socket.disconnect();
     };
   }, [myId, friendId, session]);
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (onlineStatusInterval.current) {
+        clearInterval(onlineStatusInterval.current);
+      }
+      if (typingTimeout.current) {
+        clearTimeout(typingTimeout.current);
+      }
+    };
+  }, []);
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !myId || !friendId) return;
@@ -278,7 +324,9 @@ export default function FriendChatPage() {
               showProBadge={friend.friend.isPro}
               className="ring-4 ring-white/10"
             />
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-slate-900"></div>
+            <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-slate-900 ${
+              isFriendOnline ? 'bg-green-400' : 'bg-gray-400'
+            }`}></div>
           </div>
           
           <div className="flex-1 min-w-0">
@@ -295,10 +343,15 @@ export default function FriendChatPage() {
                   </div>
                   Typing...
                 </span>
-              ) : (
+              ) : isFriendOnline ? (
                 <span className="flex items-center gap-2 text-emerald-400">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                   Online now
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 text-gray-400">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  Offline
                 </span>
               )}
             </p>
