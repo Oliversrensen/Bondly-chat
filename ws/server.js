@@ -238,6 +238,7 @@ io.on("connection", (socket) => {
   }
   
   socket.on("identify", async ({ userId }) => {
+    console.log('User identified with ID:', userId);
     socketUsers.set(socket.id, userId);
     // User identified
     
@@ -272,10 +273,18 @@ io.on("connection", (socket) => {
   socket.on("message", async ({ roomId, text, userId }) => {
     if (!roomId || !text) return;
 
+    console.log('Message received from socket:', socket.id, 'userId from params:', userId);
+    const storedUserId = socketUsers.get(socket.id);
+    console.log('Stored userId for this socket:', storedUserId);
+    
+    // Use stored userId instead of the one passed in the message for security
+    const actualUserId = storedUserId || userId;
+    console.log('Using actual userId:', actualUserId);
+    
     const startTime = Date.now();
 
     // --- Moderation ---
-    if (await isRateLimited(userId)) {
+    if (await isRateLimited(actualUserId)) {
       return; // silently drop
     }
 
@@ -284,10 +293,10 @@ io.on("connection", (socket) => {
     let sillyName = "Anonymous";
     let user = null;
     try {
-      if (userId) {
-        console.log('Looking up user with ID:', userId);
+      if (actualUserId) {
+        console.log('Looking up user with ID:', actualUserId);
         user = await prisma.user.findUnique({
-          where: { id: userId },
+          where: { id: actualUserId },
           select: { 
             sillyName: true, 
             name: true, 
@@ -319,7 +328,7 @@ io.on("connection", (socket) => {
     messageBuffer.push({
       roomId: roomId,
       text: cleanText,
-      userId: userId || "anon",
+      userId: actualUserId || "anon",
       timestamp: Date.now()
     });
     
@@ -330,7 +339,7 @@ io.on("connection", (socket) => {
 
     // Debug logging
     console.log('Sending message with user data:', {
-      userId,
+      actualUserId,
       sillyName,
       user: user ? {
         profilePicture: user.profilePicture,
@@ -342,7 +351,7 @@ io.on("connection", (socket) => {
 
     io.to(roomId).emit("message", {
       text: cleanText,
-      authorId: userId || "anon",
+      authorId: actualUserId || "anon",
       sillyName,
       at: Date.now(),
       profilePicture: user?.profilePicture || null,
