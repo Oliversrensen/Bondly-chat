@@ -54,7 +54,7 @@ export function useToast() {
 
 function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast: (id: string) => void }) {
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)]">
+    <div className="fixed top-4 right-4 z-[60] space-y-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)]">
       {toasts.map(toast => (
         <ToastItem key={toast.id} toast={toast} onRemove={removeToast} />
       ))}

@@ -157,7 +157,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
   }, [updateCanvas]);
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-2 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden my-4">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
@@ -171,7 +171,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
         </div>
 
         {/* Content */}
-        <div className="p-4 overflow-y-auto max-h-[calc(95vh-140px)]">
+        <div className="p-4 overflow-y-auto max-h-[calc(95vh-140px)] pb-20 md:pb-4">
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
             {/* Image Cropper */}
             <div className="flex-1 min-w-0">
@@ -258,7 +258,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col sm:flex-row justify-end gap-3 p-4 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 p-4 pb-20 md:pb-4 border-t border-gray-200">
           <button
             onClick={onCancel}
             className="px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors touch-manipulation"
