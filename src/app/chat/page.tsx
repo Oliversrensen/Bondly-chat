@@ -147,6 +147,7 @@ export default function ChatPage() {
     }
 
     s.on("message", (m: ChatMessage) => {
+      console.log('Received message:', m);
       setMessages((prev) => {
         const newMessages = [...prev, m];
         setLastMessageCount(prev.length);
