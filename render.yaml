@@ -3,7 +3,7 @@ services:
     name: bondly-websocket
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && prisma generate && prisma migrate deploy
     startCommand: npm run ws
     envVars:
       - key: NODE_ENV
