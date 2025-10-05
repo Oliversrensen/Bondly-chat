@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { X, User, Upload, Trash2, Camera } from "lucide-react";
 import ProfilePicture from "@/components/ProfilePicture";
+import ImageCropper from "@/components/ImageCropper";
 
 export default function ProfilePage() {
   const [gender, setGender] = useState("Undisclosed");
@@ -23,6 +24,8 @@ export default function ProfilePage() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load profile
@@ -66,10 +69,36 @@ export default function ProfilePage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (max 10MB for better quality)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size must be less than 10MB");
+      return;
+    }
+
+    // Create image URL for cropping
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImage(imageUrl);
+    setShowCropper(true);
+
+    // Clear the input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCropComplete = async (croppedImageBlob: Blob) => {
     setUploading(true);
+    setShowCropper(false);
+    
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', croppedImageBlob, 'profile-picture.jpg');
 
       const response = await fetch('/api/profile/picture', {
         method: 'POST',
@@ -93,9 +122,19 @@ export default function ProfilePage() {
       alert('Upload failed. Please try again.');
     } finally {
       setUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      // Clean up the object URL
+      if (selectedImage) {
+        URL.revokeObjectURL(selectedImage);
+        setSelectedImage("");
       }
+    }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    if (selectedImage) {
+      URL.revokeObjectURL(selectedImage);
+      setSelectedImage("");
     }
   };
 
@@ -259,7 +298,7 @@ export default function ProfilePage() {
                 )}
               </div>
               <p className="text-xs text-dark-500 mt-2">
-                Upload a JPG, PNG, or GIF image (max 5MB)
+                Upload a JPG, PNG, or GIF image (max 10MB) - you'll be able to crop and position it
               </p>
             </div>
           )}
@@ -447,6 +486,15 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Image Cropper Modal */}
+      {showCropper && selectedImage && (
+        <ImageCropper
+          imageSrc={selectedImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
     </div>
   );
 }

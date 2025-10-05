@@ -1,0 +1,249 @@
+'use client';
+
+import { useState, useRef, useCallback } from 'react';
+import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import { X, Check, RotateCw } from 'lucide-react';
+import 'react-image-crop/dist/ReactCrop.css';
+
+interface ImageCropperProps {
+  imageSrc: string;
+  onCropComplete: (croppedImageBlob: Blob) => void;
+  onCancel: () => void;
+}
+
+function centerAspectCrop(
+  mediaWidth: number,
+  mediaHeight: number,
+  aspect: number,
+) {
+  return centerCrop(
+    makeAspectCrop(
+      {
+        unit: '%',
+        width: 90,
+      },
+      aspect,
+      mediaWidth,
+      mediaHeight,
+    ),
+    mediaWidth,
+    mediaHeight,
+  );
+}
+
+export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: ImageCropperProps) {
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const [scale, setScale] = useState(1);
+  const [rotate, setRotate] = useState(0);
+  const [aspect, setAspect] = useState<number | undefined>(1);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    if (aspect) {
+      const { width, height } = e.currentTarget;
+      setCrop(centerAspectCrop(width, height, aspect));
+    }
+  }
+
+  function onDownloadCropClick() {
+    if (!previewCanvasRef.current) {
+      throw new Error('Crop canvas does not exist');
+    }
+
+    previewCanvasRef.current.toBlob((blob) => {
+      if (!blob) {
+        throw new Error('Failed to create blob');
+      }
+      onCropComplete(blob);
+    }, 'image/jpeg', 0.9);
+  }
+
+  const updateCanvas = useCallback(() => {
+    if (!completedCrop || !previewCanvasRef.current || !imgRef.current) {
+      return;
+    }
+
+    const image = imgRef.current;
+    const canvas = previewCanvasRef.current;
+    const crop = completedCrop;
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('No 2d context');
+    }
+
+    const pixelRatio = window.devicePixelRatio;
+    canvas.width = crop.width * pixelRatio;
+    canvas.height = crop.height * pixelRatio;
+
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    ctx.imageSmoothingQuality = 'high';
+
+    ctx.save();
+
+    const cropX = crop.x * scaleX;
+    const cropY = crop.y * scaleY;
+
+    const rotateRads = (rotate * Math.PI) / 180;
+    const centerX = image.naturalWidth / 2;
+    const centerY = image.naturalHeight / 2;
+
+    ctx.translate(-cropX, -cropY);
+    ctx.translate(centerX, centerY);
+    ctx.rotate(rotateRads);
+    ctx.scale(scale, scale);
+    ctx.translate(-centerX, -centerY);
+    ctx.drawImage(
+      image,
+      0,
+      0,
+      image.naturalWidth,
+      image.naturalHeight,
+      0,
+      0,
+      image.naturalWidth,
+      image.naturalHeight,
+    );
+
+    ctx.restore();
+  }, [completedCrop, scale, rotate]);
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Crop Your Profile Picture</h3>
+          <button
+            onClick={onCancel}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Image Cropper */}
+            <div className="flex-1">
+              <div className="max-h-96 overflow-auto border border-gray-200 rounded-lg">
+                <ReactCrop
+                  crop={crop}
+                  onChange={(_, percentCrop) => setCrop(percentCrop)}
+                  onComplete={(c) => setCompletedCrop(c)}
+                  aspect={aspect}
+                  minWidth={100}
+                  minHeight={100}
+                >
+                  <img
+                    ref={imgRef}
+                    alt="Crop me"
+                    src={imageSrc}
+                    style={{ transform: `scale(${scale}) rotate(${rotate}deg)` }}
+                    onLoad={onImageLoad}
+                    className="max-w-full h-auto"
+                  />
+                </ReactCrop>
+              </div>
+
+              {/* Controls */}
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Scale: {Math.round(scale * 100)}%
+                  </label>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2"
+                    step="0.1"
+                    value={scale}
+                    onChange={(e) => setScale(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Rotate: {rotate}°
+                  </label>
+                  <input
+                    type="range"
+                    min="-180"
+                    max="180"
+                    step="1"
+                    value={rotate}
+                    onChange={(e) => setRotate(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setRotate(rotate + 90)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    <RotateCw className="w-4 h-4" />
+                    Rotate 90°
+                  </button>
+                  
+                  <button
+                    onClick={() => setAspect(aspect === 1 ? undefined : 1)}
+                    className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    {aspect === 1 ? 'Free Aspect' : 'Square (1:1)'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Preview */}
+            <div className="lg:w-64">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Preview</h4>
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-white shadow-lg">
+                  <canvas
+                    ref={previewCanvasRef}
+                    className="w-full h-full object-cover"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  This is how your profile picture will look
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 p-4 border-t border-gray-200">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onDownloadCropClick}
+            disabled={!completedCrop}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-lg transition-colors"
+          >
+            <Check className="w-4 h-4" />
+            Use This Picture
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

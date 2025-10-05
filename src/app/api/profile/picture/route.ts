@@ -33,16 +33,17 @@ export async function POST(req: NextRequest) {
       return new NextResponse("File must be an image", { status: 400 });
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      return new NextResponse("File size must be less than 5MB", { status: 400 });
+    // Validate file size (max 10MB for better quality)
+    if (file.size > 10 * 1024 * 1024) {
+      return new NextResponse("File size must be less than 10MB", { status: 400 });
     }
 
-    // Convert file to base64 for storage
+    // Convert file to base64 for storage with better quality
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const base64 = buffer.toString('base64');
-    const dataUrl = `data:${file.type};base64,${base64}`;
+    // Use JPEG format for better compression while maintaining quality
+    const dataUrl = `data:image/jpeg;base64,${base64}`;
 
     // Update user's profile picture
     await prisma.user.update({
