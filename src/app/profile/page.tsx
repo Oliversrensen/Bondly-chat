@@ -10,7 +10,17 @@ export default function ProfilePage() {
   const [sillyName, setSillyName] = useState("");
   const [isPro, setIsPro] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{
+    id?: string;
+    sillyName?: string | null;
+    gender?: string;
+    interests?: string[];
+    isPro?: boolean;
+    profilePicture?: string | null;
+    profilePictureType?: string | null;
+    generatedAvatar?: string | null;
+    selectedAvatarId?: string | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -68,11 +78,11 @@ export default function ProfilePage() {
 
       if (response.ok) {
         const data = await response.json();
-        setUser(prev => ({
+        setUser(prev => prev ? ({
           ...prev,
           profilePicture: data.profilePicture,
           profilePictureType: 'uploaded'
-        }));
+        }) : null);
         alert('Profile picture updated successfully!');
       } else {
         const error = await response.text();
@@ -99,11 +109,11 @@ export default function ProfilePage() {
       });
 
       if (response.ok) {
-        setUser(prev => ({
+        setUser(prev => prev ? ({
           ...prev,
           profilePicture: null,
           profilePictureType: null
-        }));
+        }) : null);
         alert('Profile picture removed successfully!');
       } else {
         const error = await response.text();
