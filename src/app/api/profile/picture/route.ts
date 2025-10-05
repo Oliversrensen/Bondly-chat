@@ -1,49 +1,44 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { generateAvatarData } from '@/lib/avatarGenerator';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth-full";
+import { prisma } from "@/lib/prisma";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return new NextResponse("unauthorized", { status: 401 });
+  }
+
+  const userId = session.user.id;
+
+  // Check if user is Pro
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { isPro: true }
+  });
+
+  if (!user?.isPro) {
+    return new NextResponse("Pro membership required", { status: 403 });
+  }
+
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { isPro: true }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Check if user is pro
-    if (!user.isPro) {
-      return NextResponse.json({ 
-        error: 'Profile picture upload is only available for pro users' 
-      }, { status: 403 });
-    }
-
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return new NextResponse("No file provided", { status: 400 });
     }
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'File must be an image' }, { status: 400 });
+    if (!file.type.startsWith("image/")) {
+      return new NextResponse("File must be an image", { status: 400 });
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File size must be less than 5MB' }, { status: 400 });
+      return new NextResponse("File size must be less than 5MB", { status: 400 });
     }
 
-    // Convert to base64 for storage (in production, you'd upload to cloud storage)
+    // Convert file to base64 for storage
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const base64 = buffer.toString('base64');
@@ -51,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Update user's profile picture
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: userId },
       data: {
         profilePicture: dataUrl,
         profilePictureType: 'uploaded'
@@ -59,39 +54,42 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ 
-      success: true, 
-      profilePicture: dataUrl 
+      success: true,
+      profilePicture: dataUrl,
+      message: "Profile picture updated successfully"
     });
 
   } catch (error) {
-    console.error('Profile picture upload error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Error uploading profile picture:", error);
+    return new NextResponse("Internal server error", { status: 500 });
   }
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return new NextResponse("unauthorized", { status: 401 });
+  }
+
+  const userId = session.user.id;
+
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Generate a new random avatar for the user
-    const generatedAvatar = generateAvatarData();
-
+    // Remove profile picture and reset to generated avatar
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: userId },
       data: {
         profilePicture: null,
-        profilePictureType: 'generated',
-        generatedAvatar
+        profilePictureType: null
       }
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      message: "Profile picture removed successfully"
+    });
 
   } catch (error) {
-    console.error('Profile picture delete error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Error removing profile picture:", error);
+    return new NextResponse("Internal server error", { status: 500 });
   }
 }

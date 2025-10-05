@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { X, User } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { X, User, Upload, Trash2, Camera } from "lucide-react";
 import ProfilePicture from "@/components/ProfilePicture";
 
 export default function ProfilePage() {
@@ -12,6 +12,8 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load profile
   useEffect(() => {
@@ -49,6 +51,71 @@ export default function ProfilePage() {
   function removeTag(tag: string) {
     setSelected((prev) => prev.filter((t) => t !== tag));
   }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/profile/picture', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(prev => ({
+          ...prev,
+          profilePicture: data.profilePicture,
+          profilePictureType: 'uploaded'
+        }));
+        alert('Profile picture updated successfully!');
+      } else {
+        const error = await response.text();
+        alert(`Upload failed: ${error}`);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemovePicture = async () => {
+    if (!confirm('Are you sure you want to remove your profile picture?')) return;
+
+    setUploading(true);
+    try {
+      const response = await fetch('/api/profile/picture', {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setUser(prev => ({
+          ...prev,
+          profilePicture: null,
+          profilePictureType: null
+        }));
+        alert('Profile picture removed successfully!');
+      } else {
+        const error = await response.text();
+        alert(`Remove failed: ${error}`);
+      }
+    } catch (error) {
+      console.error('Remove error:', error);
+      alert('Remove failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   async function save() {
     setSaving(true);
@@ -117,17 +184,26 @@ export default function ProfilePage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-primary-400">Profile Picture</h3>
-              <p className="text-sm text-dark-400">Your randomly assigned avatar</p>
+              <p className="text-sm text-dark-400">
+                {isPro ? 'Upload your own or use generated avatars' : 'Your randomly assigned avatar'}
+              </p>
             </div>
           </div>
           
           <div className="flex items-center gap-6">
-            <ProfilePicture 
-              user={user || {}} 
-              size="xl" 
-              showProBadge={isPro}
-            />
-            <div>
+            <div className="relative">
+              <ProfilePicture 
+                user={user || {}} 
+                size="xl" 
+                showProBadge={isPro}
+              />
+              {isPro && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-200">
+                  <Camera className="w-6 h-6 text-white" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
               <h4 className="text-white font-medium text-lg">
                 {sillyName || 'Anonymous'}
               </h4>
@@ -135,10 +211,48 @@ export default function ProfilePage() {
                 {isPro ? 'Pro Member' : 'Free Member'}
               </p>
               <p className="text-dark-400 text-xs mt-1">
-                Avatars are randomly assigned
+                {user?.profilePictureType === 'uploaded' 
+                  ? 'Custom uploaded picture' 
+                  : 'Generated avatar'
+                }
               </p>
             </div>
           </div>
+
+          {isPro && (
+            <div className="mt-6 pt-6 border-t border-dark-600">
+              <div className="flex gap-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="btn btn-primary flex items-center gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  {uploading ? 'Uploading...' : 'Upload Picture'}
+                </button>
+                {user?.profilePictureType === 'uploaded' && (
+                  <button
+                    onClick={handleRemovePicture}
+                    disabled={uploading}
+                    className="btn btn-danger flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Remove Picture
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-dark-500 mt-2">
+                Upload a JPG, PNG, or GIF image (max 5MB)
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
