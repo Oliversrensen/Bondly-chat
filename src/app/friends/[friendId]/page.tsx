@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/Toast";
-import { Send, ArrowLeft, Users, MoreVertical } from "lucide-react";
+import { Send, ArrowLeft, Users } from "lucide-react";
 import io, { Socket } from "socket.io-client";
 import ProfilePicture from "@/components/ProfilePicture";
 
@@ -357,11 +357,6 @@ export default function FriendChatPage() {
             </p>
           </div>
           
-          <div className="flex gap-2">
-            <button className="p-3 hover:bg-white/10 rounded-2xl transition-all duration-300 group">
-              <MoreVertical className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
-            </button>
-          </div>
         </div>
       </div>
 
