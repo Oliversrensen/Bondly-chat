@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import { X, Check, RotateCw } from 'lucide-react';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -45,14 +45,56 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
       const { width, height } = e.currentTarget;
       setCrop(centerAspectCrop(width, height, aspect));
     }
+    // Update canvas when image loads
+    setTimeout(updateCanvas, 100);
   }
 
   function onDownloadCropClick() {
-    if (!previewCanvasRef.current) {
-      throw new Error('Crop canvas does not exist');
+    if (!completedCrop || !imgRef.current) {
+      alert('Please select an area to crop');
+      return;
     }
 
-    previewCanvasRef.current.toBlob((blob) => {
+    // Create a new canvas for the final crop
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      throw new Error('No 2d context');
+    }
+
+    const image = imgRef.current;
+    const crop = completedCrop;
+
+    // Set canvas size to 256x256 for high quality
+    canvas.width = 256;
+    canvas.height = 256;
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    // Calculate crop area
+    const cropX = crop.x * scaleX;
+    const cropY = crop.y * scaleY;
+    const cropWidth = crop.width * scaleX;
+    const cropHeight = crop.height * scaleY;
+
+    // Draw the cropped image
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(
+      image,
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      256,
+      256
+    );
+
+    canvas.toBlob((blob) => {
       if (!blob) {
         throw new Error('Failed to create blob');
       }
@@ -62,12 +104,15 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
 
   const updateCanvas = useCallback(() => {
     if (!completedCrop || !previewCanvasRef.current || !imgRef.current) {
+      console.log('Canvas update skipped:', { completedCrop: !!completedCrop, canvas: !!previewCanvasRef.current, image: !!imgRef.current });
       return;
     }
 
     const image = imgRef.current;
     const canvas = previewCanvasRef.current;
     const crop = completedCrop;
+
+    console.log('Updating canvas with crop:', crop);
 
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
@@ -77,41 +122,39 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
       throw new Error('No 2d context');
     }
 
-    const pixelRatio = window.devicePixelRatio;
-    canvas.width = crop.width * pixelRatio;
-    canvas.height = crop.height * pixelRatio;
+    // Set canvas size to 128x128 for preview
+    canvas.width = 128;
+    canvas.height = 128;
 
-    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
-    ctx.save();
-
+    // Calculate crop area
     const cropX = crop.x * scaleX;
     const cropY = crop.y * scaleY;
+    const cropWidth = crop.width * scaleX;
+    const cropHeight = crop.height * scaleY;
 
-    const rotateRads = (rotate * Math.PI) / 180;
-    const centerX = image.naturalWidth / 2;
-    const centerY = image.naturalHeight / 2;
+    console.log('Drawing to canvas:', { cropX, cropY, cropWidth, cropHeight });
 
-    ctx.translate(-cropX, -cropY);
-    ctx.translate(centerX, centerY);
-    ctx.rotate(rotateRads);
-    ctx.scale(scale, scale);
-    ctx.translate(-centerX, -centerY);
+    // Draw the cropped image to the canvas
     ctx.drawImage(
       image,
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
       0,
       0,
-      image.naturalWidth,
-      image.naturalHeight,
-      0,
-      0,
-      image.naturalWidth,
-      image.naturalHeight,
+      128,
+      128
     );
-
-    ctx.restore();
   }, [completedCrop, scale, rotate]);
+
+  // Update canvas when crop changes
+  useEffect(() => {
+    updateCanvas();
+  }, [updateCanvas]);
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -136,7 +179,11 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
                 <ReactCrop
                   crop={crop}
                   onChange={(_, percentCrop) => setCrop(percentCrop)}
-                  onComplete={(c) => setCompletedCrop(c)}
+                  onComplete={(c) => {
+                    setCompletedCrop(c);
+                    // Update canvas immediately when crop changes
+                    setTimeout(updateCanvas, 50);
+                  }}
                   aspect={aspect}
                   minWidth={100}
                   minHeight={100}
@@ -191,13 +238,6 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
                   >
                     <RotateCw className="w-4 h-4" />
                     Rotate 90°
-                  </button>
-                  
-                  <button
-                    onClick={() => setAspect(aspect === 1 ? undefined : 1)}
-                    className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                  >
-                    {aspect === 1 ? 'Free Aspect' : 'Square (1:1)'}
                   </button>
                 </div>
               </div>
