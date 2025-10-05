@@ -282,9 +282,10 @@ io.on("connection", (socket) => {
     let cleanText = sanitizeMessage(text);
 
     let sillyName = "Anonymous";
+    let user = null;
     try {
       if (userId) {
-        const user = await prisma.user.findUnique({
+        user = await prisma.user.findUnique({
           where: { id: userId },
           select: { 
             sillyName: true, 
@@ -304,34 +305,34 @@ io.on("connection", (socket) => {
           sillyName = user.name;
         }
       }
-        } catch (err) {
-          console.error("❌ Failed to fetch user info:", err);
-          errorCount++;
-        }
+    } catch (err) {
+      console.error("❌ Failed to fetch user info:", err);
+      errorCount++;
+    }
 
-        // Add message to buffer for batch processing
-        messageBuffer.push({
-          roomId: roomId,
-          text: cleanText,
-          userId: userId || "anon",
-          timestamp: Date.now()
-        });
-        
-        // Trigger batch save if buffer is full
-        if (messageBuffer.length >= BATCH_SIZE) {
-          saveMessageBatch();
-        }
+    // Add message to buffer for batch processing
+    messageBuffer.push({
+      roomId: roomId,
+      text: cleanText,
+      userId: userId || "anon",
+      timestamp: Date.now()
+    });
+    
+    // Trigger batch save if buffer is full
+    if (messageBuffer.length >= BATCH_SIZE) {
+      saveMessageBatch();
+    }
 
-        io.to(roomId).emit("message", {
-          text: cleanText,
-          authorId: userId || "anon",
-          sillyName,
-          at: Date.now(),
-          profilePicture: user?.profilePicture,
-          profilePictureType: user?.profilePictureType,
-          generatedAvatar: user?.generatedAvatar,
-          selectedAvatarId: user?.selectedAvatarId,
-        });
+    io.to(roomId).emit("message", {
+      text: cleanText,
+      authorId: userId || "anon",
+      sillyName,
+      at: Date.now(),
+      profilePicture: user?.profilePicture,
+      profilePictureType: user?.profilePictureType,
+      generatedAvatar: user?.generatedAvatar,
+      selectedAvatarId: user?.selectedAvatarId,
+    });
         
         // Track message count
         messageCount++;
