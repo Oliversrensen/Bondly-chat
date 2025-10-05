@@ -511,25 +511,12 @@ export default async function HomePage({
                 Start making meaningful connections today with our secure chat platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                {session ? (
-                  <>
-                    <a href="/chat" className="btn btn-primary px-8 py-4 text-lg">
-                      Start Chatting
-                    </a>
-                    <a href="/profile" className="btn btn-ghost px-8 py-4 text-lg">
-                      Manage Profile
-                    </a>
-                  </>
-                ) : (
-                  <>
-                    <a href="/auth" className="btn btn-primary px-8 py-4 text-lg">
-                      Start Chatting Free
-                    </a>
-                    <a href="/profile" className="btn btn-ghost px-8 py-4 text-lg">
-                      Manage Profile
-                    </a>
-                  </>
-                )}
+                <a href="/auth" className="btn btn-primary px-8 py-4 text-lg">
+                  Start Chatting Free
+                </a>
+                <a href="/profile" className="btn btn-ghost px-8 py-4 text-lg">
+                  Manage Profile
+                </a>
               </div>
             </div>
           </div>

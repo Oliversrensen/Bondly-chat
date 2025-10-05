@@ -2,11 +2,13 @@
 import { signIn } from "next-auth/react";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "@/lib/i18n";
 
 function AuthForm() {
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/chat";
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const { t } = useTranslations();
 
   async function handleGoogleSignIn() {
     setLoading(true);
@@ -28,17 +30,17 @@ function AuthForm() {
           </div>
           <h1 className="text-3xl font-bold mb-2">
             <span className="bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
-              Join Bondly
+              {t('auth.welcome') || 'Join Bondly'}
             </span>
           </h1>
           <p className="text-dark-300">
-            Start chatting with amazing people in seconds
+            {t('auth.subtitle') || 'Start chatting with amazing people in seconds'}
           </p>
           <div className="mt-3 flex items-center justify-center gap-2 text-sm text-green-400">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <span>100% Free • No Credit Card Required</span>
+            <span>{t('auth.freeMessage') || '100% Free • No Credit Card Required'}</span>
           </div>
         </div>
 

@@ -303,6 +303,32 @@ body {
   .input {
     @apply text-sm px-3 py-2;
   }
+  
+  /* Improve mobile touch targets */
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better mobile scrolling */
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, textarea, select {
+    font-size: 16px;
+  }
+  
+  /* Mobile sticky CTA improvements */
+  .safe-area-pb {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  
+  /* Ensure sticky CTA doesn't interfere with content */
+  .sticky-cta-container {
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  }
 }
 
 /* Enhanced animations for better UX */

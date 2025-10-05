@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import StructuredData from '@/components/StructuredData';
 import SafeAnalytics from '@/components/Analytics';
 import Script from 'next/script';
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 const AuthButtons = dynamic(() => import("@/components/AuthButtons"), {
   ssr: false,
@@ -134,7 +136,18 @@ export const viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+  
+  // Get user's Pro status if logged in
+  let isPro = false;
+  if (session?.user?.id) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isPro: true }
+    });
+    isPro = user?.isPro ?? false;
+  }
 
   return (
     <html lang="en" className="dark">
@@ -202,17 +215,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <span>Friends</span>
                       </Link>
                   
-                  <Link
-                    href="/pro"
-                    className="text-dark-300 hover:text-accent-400 transition-colors duration-200 text-sm font-medium group flex items-center gap-2"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-dark-800/50 flex items-center justify-center group-hover:bg-accent-500/10 transition-colors duration-200">
-                      <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
+                  {!isPro ? (
+                    <Link
+                      href="/pro"
+                      className="text-dark-300 hover:text-accent-400 transition-colors duration-200 text-sm font-medium group flex items-center gap-2"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-dark-800/50 flex items-center justify-center group-hover:bg-accent-500/10 transition-colors duration-200">
+                        <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                      </div>
+                      <span>Pro</span>
+                    </Link>
+                  ) : (
+                    <div className="text-accent-400 text-sm font-medium flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-accent-500/10 flex items-center justify-center">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                      </div>
+                      <span>Pro Member</span>
                     </div>
-                    <span>Pro</span>
-                  </Link>
+                  )}
                   
                   <div className="ml-2 pl-4 border-l border-dark-700">
                     <AuthButtons />
@@ -229,9 +253,32 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </header>
 
           {/* Main Content */}
-          <main className="min-h-screen">
+          <main className="min-h-screen pb-20 md:pb-0">
             {children}
           </main>
+
+          {/* Sticky Mobile CTA */}
+          <div className="fixed bottom-0 left-0 right-0 bg-dark-900/95 backdrop-blur-xl border-t border-dark-700/50 p-3 md:hidden z-50 safe-area-pb sticky-cta-container">
+            <div className="max-w-sm mx-auto">
+              <div className="flex gap-2">
+                {session ? (
+                  <a 
+                    href="/chat" 
+                    className="flex-1 btn btn-primary text-center py-3 text-sm font-semibold min-h-[48px] flex items-center justify-center"
+                  >
+                    Start Chatting
+                  </a>
+                ) : (
+                  <a 
+                    href="/auth" 
+                    className="flex-1 btn btn-primary text-center py-3 text-sm font-semibold min-h-[48px] flex items-center justify-center"
+                  >
+                    Start Chatting Free
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Modern Footer */}
           <footer className="border-t border-dark-700/50 bg-dark-900/50 backdrop-blur-sm">
@@ -267,43 +314,39 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Providers>
         <StructuredData />
         
-        {/* Safe Analytics with error handling */}
+        {/* Optimized Analytics - Load after user interaction */}
         <SafeAnalytics />
         
-        {/* Google Analytics 4 */}
+        {/* Combined Google Analytics and Ads - Single script load */}
         {process.env.NEXT_PUBLIC_GA_ID && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
-                  page_title: document.title,
-                  page_location: window.location.href,
-                });
-              `}
-            </Script>
-          </>
+          <Script
+            id="google-analytics-optimized"
+            strategy="lazyOnload"
+          >
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              
+              // Load GA4
+              gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
+                page_title: document.title,
+                page_location: window.location.href,
+              });
+              
+              // Load Google Ads
+              gtag('config', 'AW-17611634536');
+            `}
+          </Script>
         )}
-
-        {/* Google Ads Conversion Tracking */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=AW-17611634536"
-          strategy="afterInteractive"
-        />
-        <Script id="google-ads" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-17611634536');
-          `}
-        </Script>
+        
+        {/* Load gtag script only when needed */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}"
+            strategy="lazyOnload"
+          />
+        )}
       </body>
     </html>
   );

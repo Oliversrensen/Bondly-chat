@@ -3,8 +3,14 @@ import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
   const { nextUrl } = request
-  const token = request.cookies.get('authjs.session-token') || request.cookies.get('__Secure-authjs.session-token')
-  const isLoggedIn = !!token
+  
+  // Check for session token in cookies (both development and production)
+  const sessionToken = request.cookies.get('authjs.session-token') || 
+                      request.cookies.get('__Secure-authjs.session-token') ||
+                      request.cookies.get('next-auth.session-token') ||
+                      request.cookies.get('__Secure-next-auth.session-token')
+  
+  const isLoggedIn = !!sessionToken
 
   // Public routes that don't require authentication
   const publicRoutes = ['/', '/sitemap.xml', '/robots.txt', '/privacy', '/terms', '/support', '/pro']
@@ -26,9 +32,9 @@ export function middleware(request: NextRequest) {
   if (isPublicRoute || isPublicApiRoute) {
     response = NextResponse.next()
   }
-  // If on auth page and logged in, redirect to home
+  // If on auth page and logged in, redirect to chat (not home)
   else if (isAuthRoute && isLoggedIn) {
-    response = NextResponse.redirect(new URL('/', nextUrl))
+    response = NextResponse.redirect(new URL('/chat', nextUrl))
   }
   // If not logged in and trying to access protected route, redirect to auth
   else if (!isLoggedIn && !isPublicRoute && !isAuthRoute) {
