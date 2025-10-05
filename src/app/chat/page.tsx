@@ -6,12 +6,17 @@ import { Send, Sparkles, Shuffle, SkipForward, Flag, UserPlus } from "lucide-rea
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/Toast";
 import { MessageSkeleton, ChatControlsSkeleton } from "@/components/Skeleton";
+import ProfilePicture from "@/components/ProfilePicture";
 
 type ChatMessage = {
   text: string;
   authorId?: string;
   sillyName?: string;
   at: number;
+  profilePicture?: string | null;
+  profilePictureType?: string | null;
+  generatedAvatar?: string | null;
+  selectedAvatarId?: string | null;
 };
 
 export default function ChatPage() {
@@ -738,23 +743,46 @@ export default function ChatPage() {
                   {messages.map((m, i) => {
                     const mine = m.authorId && myId ? m.authorId === myId : false;
                     const isNewMessage = i >= lastMessageCount;
+                    const displayName = mine ? myDisplayName : (m.sillyName && m.sillyName !== "Anonymous" ? m.sillyName : "Anonymous");
+                    const timestamp = new Date(m.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    
                     return (
                       <div
                         key={`${m.at}-${i}`}
                         className={`flex ${mine ? "justify-end" : "justify-start"} ${isNewMessage ? "animate-slide-in-up" : ""}`}
                       >
-                        <div className={`message-bubble ${mine ? "own" : "other"} max-w-[85%] sm:max-w-xs`}>
-                          <div className="flex items-start justify-between mb-2 gap-2">
-                            <span className="text-xs font-semibold text-white flex-shrink-0">
-                              {mine ? myDisplayName : (m.sillyName && m.sillyName !== "Anonymous" ? m.sillyName : "Anonymous")}
-                            </span>
-                            <span className="text-xs text-white/70 flex-shrink-0">
-                              {new Date(m.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
+                        <div className={`flex ${mine ? "flex-row-reverse" : "flex-row"} items-end gap-3 max-w-[85%] sm:max-w-xs`}>
+                          {/* Profile Picture */}
+                          <div className="flex-shrink-0">
+                            <ProfilePicture
+                              user={{
+                                profilePicture: m.profilePicture,
+                                profilePictureType: m.profilePictureType,
+                                generatedAvatar: m.generatedAvatar,
+                                selectedAvatarId: m.selectedAvatarId,
+                                sillyName: m.sillyName,
+                                name: displayName
+                              }}
+                              size="sm"
+                            />
                           </div>
-                          <div className="text-white leading-relaxed text-sm">
-                            {m.text}
+                          
+                          {/* Message Bubble */}
+                          <div className={`message-bubble ${mine ? "own" : "other"} flex-1`}>
+                            <div className="text-white leading-relaxed text-sm">
+                              {m.text}
+                            </div>
                           </div>
+                        </div>
+                        
+                        {/* Name and Timestamp - positioned under profile picture */}
+                        <div className={`flex flex-col ${mine ? "items-end mr-11" : "items-start ml-11"} mt-1`}>
+                          <span className="text-xs font-semibold text-dark-300">
+                            {displayName}
+                          </span>
+                          <span className="text-xs text-dark-500">
+                            {timestamp}
+                          </span>
                         </div>
                       </div>
                     );
@@ -765,11 +793,13 @@ export default function ChatPage() {
               {/* Typing Indicator */}
               {partnerTyping && !chatEnded && (
                 <div className="flex items-center gap-3 mt-4 animate-slide-in-up">
-                  <div className="w-8 h-8 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">
-                      {(partnerName ?? "Partner").charAt(0)}
-                    </span>
-                  </div>
+                  <ProfilePicture
+                    user={{
+                      sillyName: partnerName,
+                      name: partnerName
+                    }}
+                    size="sm"
+                  />
                   <div className="bg-dark-800/50 rounded-2xl px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-dark-300">

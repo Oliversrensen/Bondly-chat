@@ -175,7 +175,7 @@ body {
 
 /* Message Bubbles */
 .message-bubble {
-  @apply relative px-4 py-3 rounded-2xl max-w-xs text-sm;
+  @apply relative px-4 py-3 rounded-2xl text-sm;
   backdrop-filter: blur(10px);
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -184,38 +184,11 @@ body {
 .message-bubble.own {
   background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
   box-shadow: 0 4px 20px rgba(14, 165, 233, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
-  margin-left: auto;
 }
 
 .message-bubble.other {
   background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
   box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
-  margin-right: auto;
-}
-
-/* Chat bubble tails */
-.message-bubble.own::after {
-  content: '';
-  position: absolute;
-  top: 12px;
-  right: -6px;
-  width: 0;
-  height: 0;
-  border: 6px solid transparent;
-  border-left-color: #3b82f6;
-  filter: drop-shadow(1px 0 2px rgba(0, 0, 0, 0.1));
-}
-
-.message-bubble.other::after {
-  content: '';
-  position: absolute;
-  top: 12px;
-  left: -6px;
-  width: 0;
-  height: 0;
-  border: 6px solid transparent;
-  border-right-color: #f472b6;
-  filter: drop-shadow(-1px 0 2px rgba(0, 0, 0, 0.1));
 }
 
 /* Status Indicators */

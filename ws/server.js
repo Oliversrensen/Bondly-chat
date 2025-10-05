@@ -286,7 +286,15 @@ io.on("connection", (socket) => {
       if (userId) {
         const user = await prisma.user.findUnique({
           where: { id: userId },
-          select: { sillyName: true, name: true, isPro: true },
+          select: { 
+            sillyName: true, 
+            name: true, 
+            isPro: true,
+            profilePicture: true,
+            profilePictureType: true,
+            generatedAvatar: true,
+            selectedAvatarId: true
+          },
         });
 
         // Use sillyName if available, otherwise use name, otherwise "Anonymous"
@@ -319,6 +327,10 @@ io.on("connection", (socket) => {
           authorId: userId || "anon",
           sillyName,
           at: Date.now(),
+          profilePicture: user?.profilePicture,
+          profilePictureType: user?.profilePictureType,
+          generatedAvatar: user?.generatedAvatar,
+          selectedAvatarId: user?.selectedAvatarId,
         });
         
         // Track message count
