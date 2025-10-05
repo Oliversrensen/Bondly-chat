@@ -157,8 +157,8 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
   }, [updateCanvas]);
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden my-4">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Crop Your Profile Picture</h3>
@@ -171,11 +171,11 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
         </div>
 
         {/* Content */}
-        <div className="p-4">
-          <div className="flex flex-col lg:flex-row gap-6">
+        <div className="p-4 overflow-y-auto max-h-[calc(95vh-140px)]">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
             {/* Image Cropper */}
-            <div className="flex-1">
-              <div className="max-h-96 overflow-auto border border-gray-200 rounded-lg">
+            <div className="flex-1 min-w-0">
+              <div className="max-h-80 sm:max-h-96 overflow-auto border border-gray-200 rounded-lg">
                 <ReactCrop
                   crop={crop}
                   onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -200,7 +200,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
               </div>
 
               {/* Controls */}
-              <div className="mt-4 space-y-4">
+              <div className="mt-4 space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Scale: {Math.round(scale * 100)}%
@@ -212,7 +212,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
                     step="0.1"
                     value={scale}
                     onChange={(e) => setScale(Number(e.target.value))}
-                    className="w-full"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   />
                 </div>
 
@@ -227,27 +227,28 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
                     step="1"
                     value={rotate}
                     onChange={(e) => setRotate(Number(e.target.value))}
-                    className="w-full"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   />
                 </div>
 
                 <div className="flex gap-2">
                   <button
                     onClick={() => setRotate(rotate + 90)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors touch-manipulation"
                   >
                     <RotateCw className="w-4 h-4" />
-                    Rotate 90°
+                    <span className="hidden sm:inline">Rotate 90°</span>
+                    <span className="sm:hidden">90°</span>
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Preview */}
-            <div className="lg:w-64">
+            <div className="lg:w-64 w-full">
               <h4 className="text-sm font-medium text-gray-700 mb-2">Preview</h4>
-              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-white shadow-lg">
+              <div className="border border-gray-200 rounded-lg p-3 sm:p-4 bg-gray-50">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full overflow-hidden border-4 border-white shadow-lg">
                   <canvas
                     ref={previewCanvasRef}
                     className="w-full h-full object-cover"
@@ -267,17 +268,17 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 p-4 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 p-4 border-t border-gray-200">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors touch-manipulation"
           >
             Cancel
           </button>
           <button
             onClick={onDownloadCropClick}
             disabled={!completedCrop}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-lg transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-lg transition-colors touch-manipulation"
           >
             <Check className="w-4 h-4" />
             Use This Picture
