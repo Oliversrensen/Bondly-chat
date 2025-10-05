@@ -285,6 +285,7 @@ io.on("connection", (socket) => {
     let user = null;
     try {
       if (userId) {
+        console.log('Looking up user with ID:', userId);
         user = await prisma.user.findUnique({
           where: { id: userId },
           select: { 
@@ -297,6 +298,7 @@ io.on("connection", (socket) => {
             selectedAvatarId: true
           },
         });
+        console.log('Found user:', user);
 
         // Use sillyName if available, otherwise use name, otherwise "Anonymous"
         if (user?.sillyName && user.sillyName.trim() !== "") {
@@ -304,6 +306,9 @@ io.on("connection", (socket) => {
         } else if (user?.name && user.name.trim() !== "") {
           sillyName = user.name;
         }
+        console.log('Using sillyName:', sillyName);
+      } else {
+        console.log('No userId provided, using Anonymous');
       }
     } catch (err) {
       console.error("❌ Failed to fetch user info:", err);
@@ -323,15 +328,27 @@ io.on("connection", (socket) => {
       saveMessageBatch();
     }
 
+    // Debug logging
+    console.log('Sending message with user data:', {
+      userId,
+      sillyName,
+      user: user ? {
+        profilePicture: user.profilePicture,
+        profilePictureType: user.profilePictureType,
+        generatedAvatar: user.generatedAvatar,
+        selectedAvatarId: user.selectedAvatarId
+      } : null
+    });
+
     io.to(roomId).emit("message", {
       text: cleanText,
       authorId: userId || "anon",
       sillyName,
       at: Date.now(),
-      profilePicture: user?.profilePicture,
-      profilePictureType: user?.profilePictureType,
-      generatedAvatar: user?.generatedAvatar,
-      selectedAvatarId: user?.selectedAvatarId,
+      profilePicture: user?.profilePicture || null,
+      profilePictureType: user?.profilePictureType || null,
+      generatedAvatar: user?.generatedAvatar || null,
+      selectedAvatarId: user?.selectedAvatarId || null,
     });
         
         // Track message count
