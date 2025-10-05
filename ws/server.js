@@ -310,7 +310,15 @@ io.on("connection", (socket) => {
             selectedAvatarId: true
           },
         });
-        console.log('Found user:', user);
+        console.log('Found user in database:', {
+          sillyName: user?.sillyName,
+          name: user?.name,
+          isPro: user?.isPro,
+          profilePicture: user?.profilePicture,
+          profilePictureType: user?.profilePictureType,
+          generatedAvatar: user?.generatedAvatar,
+          selectedAvatarId: user?.selectedAvatarId
+        });
 
         // Use sillyName if available, otherwise use name, otherwise "Anonymous"
         if (user?.sillyName && user.sillyName.trim() !== "") {
