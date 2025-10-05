@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
-import { X, Check, RotateCw } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 import 'react-image-crop/dist/ReactCrop.css';
 
 interface ImageCropperProps {
@@ -231,16 +231,6 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
                   />
                 </div>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setRotate(rotate + 90)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors touch-manipulation"
-                  >
-                    <RotateCw className="w-4 h-4" />
-                    <span className="hidden sm:inline">Rotate 90°</span>
-                    <span className="sm:hidden">90°</span>
-                  </button>
-                </div>
               </div>
             </div>
 
