@@ -303,11 +303,7 @@ io.on("connection", (socket) => {
           select: { 
             sillyName: true, 
             name: true, 
-            isPro: true,
-            profilePicture: true,
-            profilePictureType: true,
-            generatedAvatar: true,
-            selectedAvatarId: true
+            isPro: true
           },
         });
         console.log('Found user:', user);
@@ -345,10 +341,9 @@ io.on("connection", (socket) => {
       actualUserId,
       sillyName,
       user: user ? {
-        profilePicture: user.profilePicture,
-        profilePictureType: user.profilePictureType,
-        generatedAvatar: user.generatedAvatar,
-        selectedAvatarId: user.selectedAvatarId
+        sillyName: user.sillyName,
+        name: user.name,
+        isPro: user.isPro
       } : null
     });
 
@@ -357,10 +352,10 @@ io.on("connection", (socket) => {
       authorId: actualUserId || "anon",
       sillyName,
       at: Date.now(),
-      profilePicture: user?.profilePicture || null,
-      profilePictureType: user?.profilePictureType || null,
-      generatedAvatar: user?.generatedAvatar || null,
-      selectedAvatarId: user?.selectedAvatarId || null,
+      profilePicture: null,
+      profilePictureType: null,
+      generatedAvatar: null,
+      selectedAvatarId: null,
     });
         
         // Track message count
