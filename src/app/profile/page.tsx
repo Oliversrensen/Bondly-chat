@@ -11,16 +11,23 @@ export default function ProfilePage() {
   const [isPro, setIsPro] = useState(false);
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   // Load profile
   useEffect(() => {
     (async () => {
-      const me = await fetch("/api/me").then((r) => r.json());
-      if (me?.gender) setGender(me.gender);
-      if (Array.isArray(me?.interests)) setSelected(me.interests);
-      if (me?.sillyName) setSillyName(me.sillyName);
-      if (me?.isPro) setIsPro(true);
-      setUser(me);
+      try {
+        const me = await fetch("/api/me").then((r) => r.json());
+        if (me?.gender) setGender(me.gender);
+        if (Array.isArray(me?.interests)) setSelected(me.interests);
+        if (me?.sillyName) setSillyName(me.sillyName);
+        if (me?.isPro) setIsPro(true);
+        setUser(me);
+      } catch (error) {
+        console.error("Error loading profile:", error);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
@@ -70,6 +77,21 @@ export default function ProfilePage() {
     
     
     setSaving(false);
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="loading-dots mb-4">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <p className="text-white text-lg">Loading your profile...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
