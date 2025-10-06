@@ -2,51 +2,40 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const { PrismaClient } = require("@prisma/client");
 const { Redis } = require("ioredis");
-const https = require("https");
-const http = require("http");
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
-// Helper function to make HTTP requests
-function makeHttpRequest(url, options = {}) {
-  return new Promise((resolve, reject) => {
-    const urlObj = new URL(url);
-    const isHttps = urlObj.protocol === 'https:';
-    const client = isHttps ? https : http;
-    
-    const requestOptions = {
-      hostname: urlObj.hostname,
-      port: urlObj.port || (isHttps ? 443 : 80),
-      path: urlObj.pathname + urlObj.search,
-      method: options.method || 'GET',
-      headers: options.headers || {}
-    };
-    
-    const req = client.request(requestOptions, (res) => {
-      let data = '';
-      res.on('data', (chunk) => data += chunk);
-      res.on('end', () => {
-        try {
-          const jsonData = JSON.parse(data);
-          resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, status: res.statusCode, json: () => Promise.resolve(jsonData) });
-        } catch (e) {
-          resolve({ ok: false, status: res.statusCode, json: () => Promise.resolve({}) });
-        }
-      });
-    });
-    
-    req.on('error', reject);
-    req.end();
-  });
-}
+// Debug Prisma client version and capabilities
+console.log('🔍 Prisma Client Debug Info:');
+console.log('  - Client Version:', prisma._clientVersion);
+console.log('  - Environment:', process.env.NODE_ENV || 'development');
+console.log('  - Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
 
 // Test the Prisma client with a simple query to ensure it's working
 prisma.$connect().then(async () => {
   // Verify connection silently
   try {
     await prisma.message.count();
+    console.log('✅ Basic Prisma connection successful');
+    
+    // Test if new profile fields are accessible
+    try {
+      await prisma.user.findFirst({
+        select: {
+          id: true,
+          profilePicture: true,
+          profilePictureType: true,
+          generatedAvatar: true,
+          selectedAvatarId: true
+        }
+      });
+      console.log('✅ Profile picture fields are accessible');
+    } catch (profileError) {
+      console.error('❌ Profile picture fields NOT accessible:', profileError.message);
+      console.log('This indicates the Prisma client is outdated or schema mismatch');
+    }
   } catch (err) {
     console.error("❌ Error checking Message model:", err);
   }
@@ -333,89 +322,18 @@ io.on("connection", (socket) => {
     try {
       if (actualUserId) {
         console.log('Looking up user with ID:', actualUserId);
-        
-        // Try direct database query first
-        try {
-          user = await prisma.user.findUnique({
-            where: { id: actualUserId },
-            select: { 
-              sillyName: true, 
-              name: true, 
-              isPro: true,
-              profilePicture: true,
-              profilePictureType: true,
-              generatedAvatar: true,
-              selectedAvatarId: true
-            },
-          });
-          console.log('✅ Direct database query successful');
-        } catch (prismaError) {
-          // If direct query fails (e.g., missing fields), use API fallback
-          if (prismaError.message.includes('Unknown field')) {
-            console.log('⚠️ Direct query failed, using API fallback for user data');
-            try {
-              // Fetch user data through the API endpoint
-              const apiUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-              const response = await makeHttpRequest(`${apiUrl}/api/me`, {
-                headers: {
-                  'Cookie': `uid=${actualUserId}`,
-                  'Content-Type': 'application/json'
-                }
-              });
-              
-              if (response.ok) {
-                const apiUser = await response.json();
-                user = {
-                  sillyName: apiUser.sillyName,
-                  name: apiUser.sillyName, // Use sillyName as name fallback
-                  isPro: apiUser.isPro,
-                  profilePicture: apiUser.profilePicture,
-                  profilePictureType: apiUser.profilePictureType,
-                  generatedAvatar: apiUser.generatedAvatar,
-                  selectedAvatarId: apiUser.selectedAvatarId
-                };
-                console.log('✅ API fallback successful');
-              } else {
-                console.log('❌ API fallback failed, using basic query');
-                // Fallback to basic query without profile fields
-                user = await prisma.user.findUnique({
-                  where: { id: actualUserId },
-                  select: { 
-                    sillyName: true, 
-                    name: true, 
-                    isPro: true
-                  },
-                });
-                if (user) {
-                  user.profilePicture = null;
-                  user.profilePictureType = null;
-                  user.generatedAvatar = null;
-                  user.selectedAvatarId = null;
-                }
-              }
-            } catch (apiError) {
-              console.log('❌ API fallback failed, using basic query');
-              // Final fallback to basic query
-              user = await prisma.user.findUnique({
-                where: { id: actualUserId },
-                select: { 
-                  sillyName: true, 
-                  name: true, 
-                  isPro: true
-                },
-              });
-              if (user) {
-                user.profilePicture = null;
-                user.profilePictureType = null;
-                user.generatedAvatar = null;
-                user.selectedAvatarId = null;
-              }
-            }
-          } else {
-            throw prismaError;
-          }
-        }
-        
+        user = await prisma.user.findUnique({
+          where: { id: actualUserId },
+          select: { 
+            sillyName: true, 
+            name: true, 
+            isPro: true,
+            profilePicture: true,
+            profilePictureType: true,
+            generatedAvatar: true,
+            selectedAvatarId: true
+          },
+        });
         console.log('Found user in database:', {
           sillyName: user?.sillyName,
           name: user?.name,
