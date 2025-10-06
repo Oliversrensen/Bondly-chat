@@ -35,6 +35,17 @@ prisma.$connect().then(async () => {
     } catch (profileError) {
       console.error('❌ Profile picture fields NOT accessible:', profileError.message);
       console.log('This indicates the Prisma client is outdated or schema mismatch');
+      console.log('Attempting to regenerate Prisma client...');
+      
+      // Try to regenerate the client
+      try {
+        const { execSync } = require('child_process');
+        execSync('npx prisma generate --force', { stdio: 'inherit' });
+        console.log('✅ Prisma client regenerated, restarting...');
+        process.exit(1); // Exit to trigger restart
+      } catch (regenerateError) {
+        console.error('❌ Failed to regenerate Prisma client:', regenerateError.message);
+      }
     }
   } catch (err) {
     console.error("❌ Error checking Message model:", err);
