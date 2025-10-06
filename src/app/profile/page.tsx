@@ -39,7 +39,7 @@ export default function ProfilePage() {
         if (me?.isPro) setIsPro(true);
         setUser(me);
       } catch (error) {
-        console.error("Error loading profile:", error);
+        // Handle profile loading error silently
       } finally {
         setLoading(false);
       }
@@ -118,7 +118,6 @@ export default function ProfilePage() {
         alert(`Upload failed: ${error}`);
       }
     } catch (error) {
-      console.error('Upload error:', error);
       alert('Upload failed. Please try again.');
     } finally {
       setUploading(false);
@@ -159,7 +158,6 @@ export default function ProfilePage() {
         alert(`Remove failed: ${error}`);
       }
     } catch (error) {
-      console.error('Remove error:', error);
       alert('Remove failed. Please try again.');
     } finally {
       setUploading(false);
