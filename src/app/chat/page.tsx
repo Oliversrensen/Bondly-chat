@@ -17,6 +17,7 @@ type ChatMessage = {
   profilePictureType?: string | null;
   generatedAvatar?: string | null;
   selectedAvatarId?: string | null;
+  isPro?: boolean;
 };
 
 export default function ChatPage() {
@@ -759,7 +760,11 @@ export default function ChatPage() {
                         profilePictureType: m.profilePictureType,
                         generatedAvatar: m.generatedAvatar,
                         selectedAvatarId: m.selectedAvatarId,
-                        sillyName: m.sillyName
+                        sillyName: m.sillyName,
+                        isPro: m.isPro,
+                        authorId: m.authorId,
+                        mine: mine,
+                        displayName: displayName
                       });
                     }
                     
@@ -778,7 +783,8 @@ export default function ChatPage() {
                                 generatedAvatar: m.generatedAvatar,
                                 selectedAvatarId: m.selectedAvatarId,
                                 sillyName: m.sillyName,
-                                name: displayName
+                                name: displayName,
+                                isPro: m.isPro ?? false
                               }}
                               size="sm"
                             />
@@ -812,7 +818,8 @@ export default function ChatPage() {
                   <ProfilePicture
                     user={{
                       sillyName: partnerName,
-                      name: partnerName
+                      name: partnerName,
+                      isPro: false
                     }}
                     size="sm"
                   />

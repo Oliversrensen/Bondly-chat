@@ -372,6 +372,7 @@ io.on("connection", (socket) => {
       profilePictureType: user?.profilePictureType || null,
       generatedAvatar: user?.generatedAvatar || null,
       selectedAvatarId: user?.selectedAvatarId || null,
+      isPro: user?.isPro || false,
     });
         
         // Track message count

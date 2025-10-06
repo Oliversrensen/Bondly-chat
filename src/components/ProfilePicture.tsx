@@ -62,7 +62,7 @@ export default function ProfilePicture({
           style={{ backgroundColor: '#6366f1' }}
         >
           <span className="text-white font-bold">
-            {user.sillyName?.charAt(0).toUpperCase() || '?'}
+            {(user.sillyName || user.name)?.charAt(0).toUpperCase() || '?'}
           </span>
         </div>
       )}
