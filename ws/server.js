@@ -12,6 +12,8 @@ console.log('🔍 Prisma Client Debug Info:');
 console.log('  - Client Version:', prisma._clientVersion);
 console.log('  - Environment:', process.env.NODE_ENV || 'development');
 console.log('  - Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
+console.log('  - Schema Path:', process.env.PRISMA_SCHEMA_PATH || 'prisma/schema.prisma');
+console.log('  - Working Directory:', process.cwd());
 
 // Test the Prisma client with a simple query to ensure it's working
 prisma.$connect().then(async () => {
@@ -35,16 +37,36 @@ prisma.$connect().then(async () => {
     } catch (profileError) {
       console.error('❌ Profile picture fields NOT accessible:', profileError.message);
       console.log('This indicates the Prisma client is outdated or schema mismatch');
-      console.log('Attempting to regenerate Prisma client...');
       
-      // Try to regenerate the client
+      // Check what the actual schema looks like
       try {
-        const { execSync } = require('child_process');
-        execSync('npx prisma generate --force', { stdio: 'inherit' });
-        console.log('✅ Prisma client regenerated, restarting...');
-        process.exit(1); // Exit to trigger restart
-      } catch (regenerateError) {
-        console.error('❌ Failed to regenerate Prisma client:', regenerateError.message);
+        const fs = require('fs');
+        const path = require('path');
+        const schemaPath = path.join(process.cwd(), 'prisma', 'schema.prisma');
+        console.log('📄 Checking schema file at:', schemaPath);
+        
+        if (fs.existsSync(schemaPath)) {
+          const schemaContent = fs.readFileSync(schemaPath, 'utf8');
+          const hasProfileFields = schemaContent.includes('profilePicture') && 
+                                 schemaContent.includes('profilePictureType') &&
+                                 schemaContent.includes('generatedAvatar') &&
+                                 schemaContent.includes('selectedAvatarId');
+          console.log('Schema contains profile fields:', hasProfileFields);
+          
+          if (hasProfileFields) {
+            console.log('Schema is correct, attempting to regenerate Prisma client...');
+            const { execSync } = require('child_process');
+            execSync('npx prisma generate', { stdio: 'inherit' });
+            console.log('✅ Prisma client regenerated, restarting...');
+            process.exit(1); // Exit to trigger restart
+          } else {
+            console.log('❌ Schema file is missing profile fields!');
+          }
+        } else {
+          console.log('❌ Schema file not found!');
+        }
+      } catch (schemaError) {
+        console.error('❌ Error checking schema:', schemaError.message);
       }
     }
   } catch (err) {
