@@ -57,8 +57,30 @@ prisma.$connect().then(async () => {
             console.log('Schema is correct, attempting to regenerate Prisma client...');
             const { execSync } = require('child_process');
             execSync('npx prisma generate', { stdio: 'inherit' });
-            console.log('✅ Prisma client regenerated, restarting...');
-            process.exit(1); // Exit to trigger restart
+            console.log('✅ Prisma client regenerated successfully!');
+            
+            // Test if the new client works
+            try {
+              const { PrismaClient } = require('@prisma/client');
+              const testPrisma = new PrismaClient();
+              await testPrisma.user.findFirst({
+                select: {
+                  id: true,
+                  profilePicture: true,
+                  profilePictureType: true,
+                  generatedAvatar: true,
+                  selectedAvatarId: true
+                }
+              });
+              await testPrisma.$disconnect();
+              console.log('✅ New Prisma client works correctly!');
+              console.log('🔄 The server needs to restart to use the new client.');
+              console.log('Please redeploy the websocket server to pick up the changes.');
+              process.exit(0); // Exit cleanly to trigger restart
+            } catch (testError) {
+              console.log('❌ New Prisma client still has issues:', testError.message);
+              console.log('This may require a full redeploy.');
+            }
           } else {
             console.log('❌ Schema file is missing profile fields!');
           }
