@@ -3,7 +3,7 @@ services:
     name: bondly-websocket
     env: node
     plan: free
-    buildCommand: npm install && node scripts/force-schema-sync.js
+    buildCommand: npm install && npx prisma generate
     startCommand: npm run ws
     envVars:
       - key: NODE_ENV

@@ -3,8 +3,23 @@ const { Server } = require("socket.io");
 const { PrismaClient } = require("@prisma/client");
 const { Redis } = require("ioredis");
 
-// Initialize Prisma client
-const prisma = new PrismaClient();
+// Initialize Prisma client with forced regeneration
+let prisma;
+try {
+  prisma = new PrismaClient();
+} catch (error) {
+  console.log('❌ Initial Prisma client failed, attempting to regenerate...');
+  const { execSync } = require('child_process');
+  try {
+    execSync('npx prisma generate', { stdio: 'inherit' });
+    prisma = new PrismaClient();
+    console.log('✅ Prisma client regenerated successfully');
+  } catch (regenError) {
+    console.log('❌ Failed to regenerate Prisma client:', regenError.message);
+    throw error;
+  }
+}
+
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
 // Debug Prisma client version and capabilities
@@ -406,18 +421,42 @@ io.on("connection", (socket) => {
     try {
       if (actualUserId) {
         console.log('Looking up user with ID:', actualUserId);
-        user = await prisma.user.findUnique({
-          where: { id: actualUserId },
-          select: { 
-            sillyName: true, 
-            name: true, 
-            isPro: true,
-            profilePicture: true,
-            profilePictureType: true,
-            generatedAvatar: true,
-            selectedAvatarId: true
-          },
-        });
+        
+        // Try Prisma client first, fallback to raw SQL if it fails
+        try {
+          user = await prisma.user.findUnique({
+            where: { id: actualUserId },
+            select: { 
+              sillyName: true, 
+              name: true, 
+              isPro: true,
+              profilePicture: true,
+              profilePictureType: true,
+              generatedAvatar: true,
+              selectedAvatarId: true
+            },
+          });
+        } catch (prismaError) {
+          if (prismaError.message.includes('Unknown field')) {
+            console.log('⚠️ Prisma client has field issues, using raw SQL fallback');
+            // Use raw SQL to get user data
+            const rawUser = await prisma.$queryRaw`
+              SELECT "sillyName", "name", "isPro", "profilePicture", "profilePictureType", "generatedAvatar", "selectedAvatarId"
+              FROM "User" 
+              WHERE "id" = ${actualUserId}
+              LIMIT 1
+            `;
+            
+            if (rawUser && rawUser.length > 0) {
+              user = rawUser[0];
+              console.log('✅ Raw SQL query successful');
+            } else {
+              console.log('❌ Raw SQL query returned no results');
+            }
+          } else {
+            throw prismaError;
+          }
+        }
         console.log('Found user in database:', {
           sillyName: user?.sillyName,
           name: user?.name,
