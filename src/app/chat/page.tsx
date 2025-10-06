@@ -793,20 +793,6 @@ export default function ChatPage() {
                     const displayName = mine ? myDisplayName : (m.sillyName && m.sillyName !== "Anonymous" ? m.sillyName : "Anonymous");
                     const timestamp = new Date(m.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     
-                    // Debug profile picture data
-                    if (i === 0) {
-                      console.log('Message profile picture data:', {
-                        profilePicture: m.profilePicture,
-                        profilePictureType: m.profilePictureType,
-                        generatedAvatar: m.generatedAvatar,
-                        selectedAvatarId: m.selectedAvatarId,
-                        sillyName: m.sillyName,
-                        isPro: m.isPro,
-                        authorId: m.authorId,
-                        mine: mine,
-                        displayName: displayName
-                      });
-                    }
                     
                     return (
                       <div

@@ -22,108 +22,15 @@ try {
 
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
-// Debug Prisma client version and capabilities
-console.log('🔍 Prisma Client Debug Info:');
-console.log('  - Client Version:', prisma._clientVersion);
-console.log('  - Environment:', process.env.NODE_ENV || 'development');
-console.log('  - Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
-console.log('  - Schema Path:', process.env.PRISMA_SCHEMA_PATH || 'prisma/schema.prisma');
-console.log('  - Working Directory:', process.cwd());
-
-// Check if the schema file exists and what it contains
-const fs = require('fs');
-const path = require('path');
-const schemaPath = path.join(process.cwd(), 'prisma', 'schema.prisma');
-console.log('  - Schema file exists:', fs.existsSync(schemaPath));
-if (fs.existsSync(schemaPath)) {
-  const schemaContent = fs.readFileSync(schemaPath, 'utf8');
-  const hasProfileFields = schemaContent.includes('profilePicture') && 
-                         schemaContent.includes('profilePictureType') &&
-                         schemaContent.includes('generatedAvatar') &&
-                         schemaContent.includes('selectedAvatarId');
-  console.log('  - Schema contains profile fields:', hasProfileFields);
-  
-  if (hasProfileFields) {
-    // Show the actual User model from the schema
-    const lines = schemaContent.split('\n');
-    const userModelStart = lines.findIndex(line => line.trim().startsWith('model User'));
-    if (userModelStart !== -1) {
-      const userModelLines = lines.slice(userModelStart, userModelStart + 30);
-      console.log('  - User model preview:');
-      userModelLines.slice(0, 10).forEach((line, i) => {
-        if (line.trim()) {
-          console.log(`    ${userModelStart + i + 1}: ${line}`);
-        }
-      });
-    }
-  }
-}
+// Basic startup info
+console.log('🚀 WebSocket server starting...');
 
 // Test the Prisma client with a simple query to ensure it's working
 prisma.$connect().then(async () => {
   // Verify connection silently
   try {
     await prisma.message.count();
-    console.log('✅ Basic Prisma connection successful');
-    
-// Test if new profile fields are accessible
-try {
-  await prisma.user.findFirst({
-    select: {
-      id: true,
-      profilePicture: true,
-      profilePictureType: true,
-      generatedAvatar: true,
-      selectedAvatarId: true
-    }
-  });
-  console.log('✅ Profile picture fields are accessible');
-} catch (profileError) {
-  console.error('❌ Profile picture fields NOT accessible:', profileError.message);
-  console.log('This indicates the Prisma client is outdated or schema mismatch');
-  
-  // Test raw SQL fallback
-  try {
-    console.log('🔄 Testing raw SQL fallback...');
-    const rawTest = await prisma.$queryRaw`
-      SELECT "id", "profilePicture", "profilePictureType", "generatedAvatar", "selectedAvatarId"
-      FROM "User" 
-      LIMIT 1
-    `;
-    console.log('✅ Raw SQL fallback works - profile fields accessible via SQL');
-  } catch (rawError) {
-    console.error('❌ Raw SQL fallback also failed:', rawError.message);
-  }
-      
-      // Check what the actual schema looks like
-      try {
-        const fs = require('fs');
-        const path = require('path');
-        const schemaPath = path.join(process.cwd(), 'prisma', 'schema.prisma');
-        console.log('📄 Checking schema file at:', schemaPath);
-        
-        if (fs.existsSync(schemaPath)) {
-          const schemaContent = fs.readFileSync(schemaPath, 'utf8');
-          const hasProfileFields = schemaContent.includes('profilePicture') && 
-                                 schemaContent.includes('profilePictureType') &&
-                                 schemaContent.includes('generatedAvatar') &&
-                                 schemaContent.includes('selectedAvatarId');
-          console.log('Schema contains profile fields:', hasProfileFields);
-          
-          if (hasProfileFields) {
-            console.log('Schema is correct, but Prisma client has issues.');
-            console.log('🔄 Using raw SQL fallback for all database operations.');
-            console.log('✅ Server will continue running with SQL fallback.');
-          } else {
-            console.log('❌ Schema file is missing profile fields!');
-          }
-        } else {
-          console.log('❌ Schema file not found!');
-        }
-      } catch (schemaError) {
-        console.error('❌ Error checking schema:', schemaError.message);
-      }
-    }
+    console.log('✅ Database connected');
   } catch (err) {
     console.error("❌ Error checking Message model:", err);
   }
@@ -215,7 +122,6 @@ prisma.$connect()
 // Clean up Redis keys on startup to avoid type conflicts
 async function cleanupRedisKeys() {
   try {
-    console.log("🧹 Cleaning up Redis keys...");
     
     // Check and clean active tracking keys
     const userType = await redis.type('active_users');
@@ -230,7 +136,6 @@ async function cleanupRedisKeys() {
       await redis.del('active_connections');
     }
     
-    console.log("✅ Redis cleanup completed");
   } catch (err) {
     console.error("❌ Redis cleanup failed:", err);
   }
@@ -387,14 +292,10 @@ io.on("connection", (socket) => {
   socket.on("message", async ({ roomId, text, userId }) => {
     if (!roomId || !text) return;
 
-    console.log('Message received from socket:', socket.id, 'userId from params:', userId);
-    console.log('Current socketUsers map:', Array.from(socketUsers.entries()));
     const storedUserId = socketUsers.get(socket.id);
-    console.log('Stored userId for this socket:', storedUserId);
     
     // Use stored userId instead of the one passed in the message for security
     const actualUserId = storedUserId || userId;
-    console.log('Using actual userId:', actualUserId);
     
     const startTime = Date.now();
 
@@ -409,7 +310,6 @@ io.on("connection", (socket) => {
     let user = null;
     try {
       if (actualUserId) {
-        console.log('Looking up user with ID:', actualUserId);
         
         // Try Prisma client first, fallback to raw SQL if it fails
         try {
@@ -427,7 +327,6 @@ io.on("connection", (socket) => {
           });
         } catch (prismaError) {
           if (prismaError.message.includes('Unknown field')) {
-            console.log('⚠️ Prisma client has field issues, using raw SQL fallback');
             // Use raw SQL to get user data
             const rawUser = await prisma.$queryRaw`
               SELECT "sillyName", "name", "isPro", "profilePicture", "profilePictureType", "generatedAvatar", "selectedAvatarId"
@@ -438,23 +337,11 @@ io.on("connection", (socket) => {
             
             if (rawUser && rawUser.length > 0) {
               user = rawUser[0];
-              console.log('✅ Raw SQL query successful');
-            } else {
-              console.log('❌ Raw SQL query returned no results');
             }
           } else {
             throw prismaError;
           }
         }
-        console.log('Found user in database:', {
-          sillyName: user?.sillyName,
-          name: user?.name,
-          isPro: user?.isPro,
-          profilePicture: user?.profilePicture,
-          profilePictureType: user?.profilePictureType,
-          generatedAvatar: user?.generatedAvatar,
-          selectedAvatarId: user?.selectedAvatarId
-        });
 
         // Use sillyName if available, otherwise use name, otherwise "Anonymous"
         if (user?.sillyName && user.sillyName.trim() !== "") {
@@ -462,12 +349,8 @@ io.on("connection", (socket) => {
         } else if (user?.name && user.name.trim() !== "") {
           sillyName = user.name;
         }
-        console.log('Using sillyName:', sillyName);
-      } else {
-        console.log('No userId provided, using Anonymous');
       }
     } catch (err) {
-      console.error("❌ Failed to fetch user info:", err);
       errorCount++;
     }
 
@@ -484,20 +367,6 @@ io.on("connection", (socket) => {
       saveMessageBatch();
     }
 
-    // Debug logging
-    console.log('Sending message with user data:', {
-      actualUserId,
-      sillyName,
-      user: user ? {
-        sillyName: user.sillyName,
-        name: user.name,
-        isPro: user.isPro,
-        profilePicture: user.profilePicture,
-        profilePictureType: user.profilePictureType,
-        generatedAvatar: user.generatedAvatar,
-        selectedAvatarId: user.selectedAvatarId
-      } : null
-    });
 
     io.to(roomId).emit("message", {
       text: cleanText,
@@ -668,6 +537,4 @@ process.on('SIGINT', async () => {
 
 httpServer.listen(PORT, HOST, () => {
   console.log(`🚀 WebSocket server running on ${HOST}:${PORT}`);
-  console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`💾 Message batching: ${BATCH_SIZE} messages or ${BATCH_TIMEOUT}ms`);
 });
