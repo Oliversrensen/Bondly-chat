@@ -20,11 +20,16 @@ export async function GET(req: NextRequest) {
   const uid = session?.user?.id || req.cookies.get("uid")?.value;
   if (!uid) return new NextResponse("unauthorized", { status: 401 });
 
+  // Check if we're fetching partner data
+  const partnerId = req.nextUrl.searchParams.get("partnerId");
+  const targetId = partnerId || uid;
+
   const user = await prisma.user.findUnique({
-    where: { id: uid },
+    where: { id: targetId },
     select: {
       id: true,
       sillyName: true,
+      name: true,
       gender: true,
       isPro: true,
       selectedAvatarId: true,
@@ -37,8 +42,9 @@ export async function GET(req: NextRequest) {
 
   if (!user) {
     return NextResponse.json({
-      id: uid,
-      sillyName: `User${uid.slice(0, 6)}`,
+      id: targetId,
+      sillyName: `User${targetId.slice(0, 6)}`,
+      name: null,
       gender: "Undisclosed",
       interests: [],
       isPro: false,
@@ -53,6 +59,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     id: user.id,
     sillyName: user.sillyName,
+    name: user.name,
     gender: user.gender,
     interests,
     isPro: user.isPro,

@@ -32,6 +32,15 @@ export default function ChatPage() {
   const [finding, setFinding] = useState(false);
   const [partnerName, setPartnerName] = useState<string | null>(null);
   const [partnerId, setPartnerId] = useState<string | null>(null);
+  const [partnerProfile, setPartnerProfile] = useState<{
+    sillyName: string | null;
+    name: string | null;
+    profilePicture: string | null;
+    profilePictureType: string | null;
+    generatedAvatar: string | null;
+    selectedAvatarId: string | null;
+    isPro: boolean;
+  } | null>(null);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
   const [lastMode, setLastMode] = useState<"random" | "interest">("random");
@@ -60,6 +69,29 @@ export default function ChatPage() {
     if (pollRef.current) {
       clearInterval(pollRef.current);
       pollRef.current = null;
+    }
+  }
+
+  // Fetch partner's profile data
+  async function fetchPartnerProfile(partnerId: string) {
+    try {
+      const res = await fetch(`/api/me?partnerId=${partnerId}`, {
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPartnerProfile({
+          sillyName: data.sillyName,
+          name: data.name,
+          profilePicture: data.profilePicture,
+          profilePictureType: data.profilePictureType,
+          generatedAvatar: data.generatedAvatar,
+          selectedAvatarId: data.selectedAvatarId,
+          isPro: data.isPro || false,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch partner profile:', error);
     }
   }
 
@@ -378,6 +410,10 @@ export default function ChatPage() {
       setPartnerId(data.partnerId ?? null);
       setStatus(`Matched with ${data.partnerName ?? "Anonymous"}, say hi!`);
       setRoomId(data.roomId);
+      // Fetch partner's full profile data
+      if (data.partnerId) {
+        fetchPartnerProfile(data.partnerId);
+      }
       stopPolling();
       clearQueueTimeout(); // Clear any pending timeout
       addToast({
@@ -420,6 +456,10 @@ export default function ChatPage() {
               `Matched with ${data.partnerName ?? "Anonymous"}, say hi!`
             );
             setRoomId(data.roomId);
+            // Fetch partner's full profile data
+            if (data.partnerId) {
+              fetchPartnerProfile(data.partnerId);
+            }
             stopPolling();
             addToast({
               type: 'success',
@@ -816,7 +856,15 @@ export default function ChatPage() {
               {partnerTyping && !chatEnded && (
                 <div className="flex items-center gap-3 mt-4 animate-slide-in-up">
                   <ProfilePicture
-                    user={{
+                    user={partnerProfile ? {
+                      sillyName: partnerProfile.sillyName,
+                      name: partnerProfile.name,
+                      profilePicture: partnerProfile.profilePicture,
+                      profilePictureType: partnerProfile.profilePictureType,
+                      generatedAvatar: partnerProfile.generatedAvatar,
+                      selectedAvatarId: partnerProfile.selectedAvatarId,
+                      isPro: partnerProfile.isPro
+                    } : {
                       sillyName: partnerName,
                       name: partnerName,
                       isPro: false
