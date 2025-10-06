@@ -1,5 +1,6 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import FacebookProvider from "next-auth/providers/facebook";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { generateRandomAvatar } from "./avatarGenerator";
@@ -29,6 +30,10 @@ export const authConfig: NextAuthConfig = {
       },
       // Explicitly enable PKCE
       checks: ["pkce", "state"],
+    }),
+    FacebookProvider({
+      clientId: process.env.FACEBOOK_CLIENT_ID!,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
     }),
   ],
   events: {
