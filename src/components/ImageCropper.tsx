@@ -104,7 +104,6 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
 
   const updateCanvas = useCallback(() => {
     if (!completedCrop || !previewCanvasRef.current || !imgRef.current) {
-      console.log('Canvas update skipped:', { completedCrop: !!completedCrop, canvas: !!previewCanvasRef.current, image: !!imgRef.current });
       return;
     }
 
@@ -112,7 +111,6 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
     const canvas = previewCanvasRef.current;
     const crop = completedCrop;
 
-    console.log('Updating canvas with crop:', crop);
 
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
@@ -135,7 +133,6 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
     const cropWidth = crop.width * scaleX;
     const cropHeight = crop.height * scaleY;
 
-    console.log('Drawing to canvas:', { cropX, cropY, cropWidth, cropHeight });
 
     // Draw the cropped image to the canvas
     ctx.drawImage(
