@@ -3,7 +3,7 @@ services:
     name: bondly-websocket
     env: node
     plan: free
-    buildCommand: npm install && node scripts/debug-prisma-production.js && node scripts/fix-production-db.js && rm -rf node_modules/.prisma && rm -rf node_modules/@prisma && npx prisma generate && npx prisma db push
+    buildCommand: npm install && npx prisma generate
     startCommand: npm run ws
     envVars:
       - key: NODE_ENV

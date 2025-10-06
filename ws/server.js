@@ -15,6 +15,35 @@ console.log('  - Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
 console.log('  - Schema Path:', process.env.PRISMA_SCHEMA_PATH || 'prisma/schema.prisma');
 console.log('  - Working Directory:', process.cwd());
 
+// Check if the schema file exists and what it contains
+const fs = require('fs');
+const path = require('path');
+const schemaPath = path.join(process.cwd(), 'prisma', 'schema.prisma');
+console.log('  - Schema file exists:', fs.existsSync(schemaPath));
+if (fs.existsSync(schemaPath)) {
+  const schemaContent = fs.readFileSync(schemaPath, 'utf8');
+  const hasProfileFields = schemaContent.includes('profilePicture') && 
+                         schemaContent.includes('profilePictureType') &&
+                         schemaContent.includes('generatedAvatar') &&
+                         schemaContent.includes('selectedAvatarId');
+  console.log('  - Schema contains profile fields:', hasProfileFields);
+  
+  if (hasProfileFields) {
+    // Show the actual User model from the schema
+    const lines = schemaContent.split('\n');
+    const userModelStart = lines.findIndex(line => line.trim().startsWith('model User'));
+    if (userModelStart !== -1) {
+      const userModelLines = lines.slice(userModelStart, userModelStart + 30);
+      console.log('  - User model preview:');
+      userModelLines.slice(0, 10).forEach((line, i) => {
+        if (line.trim()) {
+          console.log(`    ${userModelStart + i + 1}: ${line}`);
+        }
+      });
+    }
+  }
+}
+
 // Test the Prisma client with a simple query to ensure it's working
 prisma.$connect().then(async () => {
   // Verify connection silently
