@@ -98,9 +98,9 @@ export default function GuestChatPage() {
 
     socket.on("connect", () => {
       console.log("Guest WebSocket connected");
-      // Identify as guest user
+      // Identify as guest user using the session guest ID
       socket.emit("identify", { 
-        userId: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        userId: guestId,
         isGuest: true 
       });
     });

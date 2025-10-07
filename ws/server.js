@@ -259,7 +259,6 @@ io.on("connection", (socket) => {
     console.log('Socket ID:', socket.id);
     socketUsers.set(socket.id, userId);
     console.log('Stored userId in socketUsers map');
-    // User identified
     
     // Track active user with minimal Redis commands
     if (userId) {
@@ -267,14 +266,14 @@ io.on("connection", (socket) => {
         if (isGuest) {
           // For guest users, just track the connection
           await redis.sadd('guest_connections', socket.id);
-          console.log('Guest user tracked');
+          console.log('Guest user tracked with socket ID:', socket.id, 'userId:', userId);
         } else {
           // Use pipeline to batch operations for regular users
           const pipeline = redis.pipeline();
           pipeline.sadd('active_users', userId);
           pipeline.sadd('active_connections', socket.id);
           await pipeline.exec();
-          console.log('Regular user tracked');
+          console.log('Regular user tracked with socket ID:', socket.id, 'userId:', userId);
         }
       } catch (err) {
         console.error("Error tracking active user:", err);
@@ -285,6 +284,9 @@ io.on("connection", (socket) => {
 
   socket.on("join_room", ({ roomId }) => {
     if (!roomId) return;
+    const userId = socketUsers.get(socket.id);
+    console.log(`User ${userId} (socket: ${socket.id}) joining room: ${roomId}`);
+    
     socket.join(roomId);
     
     // Track the room for this socket
@@ -295,12 +297,12 @@ io.on("connection", (socket) => {
     
     // Emit room joined event to other users in the room
     socket.to(roomId).emit("user_joined", {
-      userId: socketUsers.get(socket.id),
+      userId: userId,
       roomId: roomId,
       timestamp: Date.now()
     });
     
-    // Socket joined room
+    console.log(`User ${userId} successfully joined room ${roomId}`);
   });
 
   // Handle guest messages
@@ -311,7 +313,10 @@ io.on("connection", (socket) => {
     
     // Rate limiting for guest messages
     const guestId = socketUsers.get(socket.id);
+    console.log(`Guest message from ${guestId} (socket: ${socket.id}) in room: ${roomId}`);
+    
     if (guestId && await isRateLimited(guestId)) {
+      console.log(`Rate limited guest ${guestId}`);
       return; // silently drop
     }
 
@@ -335,7 +340,7 @@ io.on("connection", (socket) => {
     const responseTime = Date.now() - startTime;
     responseTimes.push(responseTime);
     
-    console.log(`Guest message in ${roomId}: ${cleanText.substring(0, 50)}...`);
+    console.log(`Guest message sent from ${guestId} in ${roomId}: ${cleanText.substring(0, 50)}...`);
   });
 
   socket.on("message", async ({ roomId, text, userId }) => {
@@ -465,7 +470,10 @@ io.on("connection", (socket) => {
       socketRooms.get(socket.id).delete(roomId);
     }
     
+    // Emit both events for compatibility with guest and regular chat
     socket.to(roomId).emit("ended");
+    socket.to(roomId).emit("user_left");
+    
     const uid = socketUsers.get(socket.id);
     await cleanupUser(uid);
     // User left room
@@ -536,13 +544,17 @@ io.on("connection", (socket) => {
       // Disconnect cleanup
       socket.on("disconnect", async (reason) => {
         const uid = socketUsers.get(socket.id);
+        console.log(`User ${uid} (socket: ${socket.id}) disconnected. Reason: ${reason}`);
         
         // Use tracked rooms instead of socket.rooms (which might be empty)
         const trackedRooms = socketRooms.get(socket.id) || new Set();
+        console.log(`Notifying ${trackedRooms.size} rooms about disconnect`);
         
         // Notify all tracked rooms that the user left
         for (const roomId of trackedRooms) {
+          console.log(`Emitting 'ended' and 'user_left' to room: ${roomId}`);
           socket.to(roomId).emit("ended");
+          socket.to(roomId).emit("user_left");
         }
         
         if (uid) {
@@ -564,7 +576,7 @@ io.on("connection", (socket) => {
         socketRooms.delete(socket.id);
         
         connectionCount--;
-        // Socket disconnected
+        console.log(`Disconnect cleanup completed for user ${uid}`);
       });
 });
 
