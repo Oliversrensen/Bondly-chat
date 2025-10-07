@@ -14,20 +14,28 @@ export function middleware(request: NextRequest) {
                       request.cookies.get('next-auth.session-token') ||
                       request.cookies.get('__Secure-next-auth.session-token')
   
+  // Check for guest session
+  const guestSession = request.cookies.get('guest-session')
+  
   const isLoggedIn = !!sessionToken
+  const isGuest = !!guestSession
 
   // Public routes that don't require authentication
   const publicRoutes = ['/', '/sitemap.xml', '/robots.txt', '/privacy', '/terms', '/support', '/pro']
   const authRoutes = ['/auth']
   
+  // Guest routes that allow guest sessions
+  const guestRoutes = ['/guest-chat']
+  
   // API routes that should be public (webhooks, health checks, etc.)
-  const publicApiRoutes = ['/api/gumroad/webhook', '/api/gumroad/simple-webhook', '/api/health', '/api/interests']
+  const publicApiRoutes = ['/api/gumroad/webhook', '/api/gumroad/simple-webhook', '/api/health', '/api/interests', '/api/guest']
   
   // Check if this is a public API route
   const isPublicApiRoute = publicApiRoutes.some(route => nextUrl.pathname.startsWith(route))
   
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname)
   const isAuthRoute = authRoutes.some(route => nextUrl.pathname.startsWith(route))
+  const isGuestRoute = guestRoutes.some(route => nextUrl.pathname.startsWith(route))
   
   // Create response
   let response: NextResponse
@@ -40,12 +48,16 @@ export function middleware(request: NextRequest) {
   else if (isBot) {
     response = NextResponse.next()
   }
+  // Allow guest access to guest routes
+  else if (isGuestRoute && (isGuest || isLoggedIn)) {
+    response = NextResponse.next()
+  }
   // If on auth page and logged in, redirect to chat (not home)
   else if (isAuthRoute && isLoggedIn) {
     response = NextResponse.redirect(new URL('/chat', nextUrl))
   }
   // If not logged in and trying to access protected route, redirect to auth
-  else if (!isLoggedIn && !isPublicRoute && !isAuthRoute) {
+  else if (!isLoggedIn && !isPublicRoute && !isAuthRoute && !isGuestRoute) {
     response = NextResponse.redirect(new URL('/auth', nextUrl))
   }
   else {

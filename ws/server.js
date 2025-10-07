@@ -254,8 +254,8 @@ io.on("connection", (socket) => {
     socketUsers.set(socket.id, userId);
   }
   
-  socket.on("identify", async ({ userId }) => {
-    console.log('IDENTIFY EVENT RECEIVED - User identified with ID:', userId);
+  socket.on("identify", async ({ userId, isGuest }) => {
+    console.log('IDENTIFY EVENT RECEIVED - User identified with ID:', userId, 'isGuest:', isGuest);
     console.log('Socket ID:', socket.id);
     socketUsers.set(socket.id, userId);
     console.log('Stored userId in socketUsers map');
@@ -264,11 +264,18 @@ io.on("connection", (socket) => {
     // Track active user with minimal Redis commands
     if (userId) {
       try {
-        // Use pipeline to batch operations
-        const pipeline = redis.pipeline();
-        pipeline.sadd('active_users', userId);
-        pipeline.sadd('active_connections', socket.id);
-        await pipeline.exec();
+        if (isGuest) {
+          // For guest users, just track the connection
+          await redis.sadd('guest_connections', socket.id);
+          console.log('Guest user tracked');
+        } else {
+          // Use pipeline to batch operations for regular users
+          const pipeline = redis.pipeline();
+          pipeline.sadd('active_users', userId);
+          pipeline.sadd('active_connections', socket.id);
+          await pipeline.exec();
+          console.log('Regular user tracked');
+        }
       } catch (err) {
         console.error("Error tracking active user:", err);
         // If there's an error, just skip tracking (don't spam Redis with retries)
@@ -287,6 +294,41 @@ io.on("connection", (socket) => {
     socketRooms.get(socket.id).add(roomId);
     
     // Socket joined room
+  });
+
+  // Handle guest messages
+  socket.on("guest_message", async ({ roomId, text, isGuest }) => {
+    if (!roomId || !text) return;
+    
+    const startTime = Date.now();
+    
+    // Rate limiting for guest messages
+    const guestId = socketUsers.get(socket.id);
+    if (guestId && await isRateLimited(guestId)) {
+      return; // silently drop
+    }
+
+    let cleanText = sanitizeMessage(text);
+
+    // For guest messages, we don't need to fetch user data from DB
+    const messageData = {
+      text: cleanText,
+      roomId,
+      authorId: guestId || 'guest_anonymous',
+      sillyName: 'Anonymous Guest',
+      at: Date.now(),
+      isGuest: true
+    };
+
+    // Emit to room
+    socket.to(roomId).emit("message", messageData);
+    
+    // Track metrics
+    messageCount++;
+    const responseTime = Date.now() - startTime;
+    responseTimes.push(responseTime);
+    
+    console.log(`Guest message in ${roomId}: ${cleanText.substring(0, 50)}...`);
   });
 
   socket.on("message", async ({ roomId, text, userId }) => {
