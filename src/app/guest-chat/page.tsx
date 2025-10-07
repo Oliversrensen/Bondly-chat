@@ -111,6 +111,7 @@ export default function GuestChatPage() {
     });
 
     socket.on("message", (data: ChatMessage) => {
+      console.log("Guest received message:", data);
       setMessages(prev => [...prev, data]);
       setMessageCount(prev => prev + 1);
       setTimeout(scrollToBottom, 100);
@@ -135,6 +136,10 @@ export default function GuestChatPage() {
       });
     });
 
+    socket.on("user_joined", (data) => {
+      console.log("User joined room:", data);
+    });
+
     socket.on("disconnect", () => {
       console.log("Guest WebSocket disconnected");
     });
@@ -149,11 +154,19 @@ export default function GuestChatPage() {
 
   // Join room when roomId is set
   useEffect(() => {
-    if (roomId && socketRef.current?.connected) {
-      console.log("Joining room:", roomId);
+    if (roomId && socketRef.current?.connected && guestId) {
+      console.log("Guest joining room:", roomId, "socket connected:", socketRef.current.connected, "guestId:", guestId);
+      // Make sure we're identified first
+      socketRef.current.emit("identify", { 
+        userId: guestId,
+        isGuest: true 
+      });
+      // Then join the room
       socketRef.current.emit("join_room", { roomId });
+    } else {
+      console.log("Cannot join room - roomId:", roomId, "socket connected:", socketRef.current?.connected, "guestId:", guestId);
     }
-  }, [roomId]);
+  }, [roomId, guestId]);
 
   function scrollToBottom() {
     if (!scrollRef.current) return;
@@ -264,6 +277,8 @@ export default function GuestChatPage() {
 
   function send() {
     if (!text.trim() || !roomId || !socketRef.current || chatEnded) return;
+    
+    console.log("Guest sending message:", { roomId, text, isGuest: true });
     
     socketRef.current.emit("guest_message", {
       roomId,
