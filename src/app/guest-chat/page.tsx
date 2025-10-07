@@ -30,6 +30,7 @@ export default function GuestChatPage() {
   const [isPartnerRealUser, setIsPartnerRealUser] = useState(false);
   const [sessionTimeLeft, setSessionTimeLeft] = useState(30 * 60); // 30 minutes in seconds
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [guestId, setGuestId] = useState<string | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -50,6 +51,7 @@ export default function GuestChatPage() {
         if (response.ok) {
           const data = await response.json();
           console.log('Guest session created:', data.guestId);
+          setGuestId(data.guestId);
         }
       } catch (error) {
         console.error('Failed to create guest session:', error);
@@ -91,6 +93,17 @@ export default function GuestChatPage() {
     }
   }, [messageCount, showUpgradePrompt]);
 
+  // Re-identify when guestId becomes available
+  useEffect(() => {
+    if (guestId && socketRef.current?.connected) {
+      console.log("Re-identifying with guestId:", guestId);
+      socketRef.current.emit("identify", { 
+        userId: guestId,
+        isGuest: true 
+      });
+    }
+  }, [guestId]);
+
   // Initialize WebSocket connection
   useEffect(() => {
     const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080');
@@ -99,10 +112,12 @@ export default function GuestChatPage() {
     socket.on("connect", () => {
       console.log("Guest WebSocket connected");
       // Identify as guest user using the session guest ID
-      socket.emit("identify", { 
-        userId: guestId,
-        isGuest: true 
-      });
+      if (guestId) {
+        socket.emit("identify", { 
+          userId: guestId,
+          isGuest: true 
+        });
+      }
     });
 
     socket.on("message", (data: ChatMessage) => {
