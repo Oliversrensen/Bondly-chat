@@ -147,6 +147,14 @@ export default function GuestChatPage() {
     };
   }, [guestId, roomId, addToast]);
 
+  // Join room when roomId is set
+  useEffect(() => {
+    if (roomId && socketRef.current?.connected) {
+      console.log("Joining room:", roomId);
+      socketRef.current.emit("join_room", { roomId });
+    }
+  }, [roomId]);
+
   function scrollToBottom() {
     if (!scrollRef.current) return;
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
