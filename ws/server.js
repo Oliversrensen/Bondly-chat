@@ -189,6 +189,7 @@ const socketRooms = new Map();
 
 const QKEYS = ["queue:random", "queue:interest"];
 const PENDING = (u) => `match:pending:${u}`;
+const GUEST_PENDING = (u) => `guest:match:pending:${u}`;
 
 // --- Simple bad word / link filter ---
 const bannedWords = ["badword1", "badword2"]; // extend list
@@ -212,21 +213,36 @@ function sanitizeMessage(text) {
 // --- Cleanup helper ---
 async function cleanupUser(uid) {
   if (!uid) return;
+  
+  const isGuest = uid.startsWith('guest_');
+  console.log(`Cleaning up ${isGuest ? 'guest' : 'user'}: ${uid}`);
+  
   try {
+    // Clean up regular queues
     await redis.lrem("queue:random", 0, uid);
     await redis.del(`queue:random:user:${uid}`);
+    
+    // Clean up guest queues
+    await redis.lrem("queue:guest", 0, uid);
+    await redis.del(`queue:guest:${uid}`);
 
-    const myInterests = await prisma.interestOnUser.findMany({
-      where: { userId: uid },
-      include: { interest: true },
-    });
-    for (const i of myInterests) {
-      const qKey = `queue:interest:${i.interest.name.toLowerCase()}`;
-      await redis.lrem(qKey, 0, uid);
-      await redis.del(`${qKey}:user:${uid}`);
+    // Only query database for real users, not guests
+    if (!isGuest) {
+      const myInterests = await prisma.interestOnUser.findMany({
+        where: { userId: uid },
+        include: { interest: true },
+      });
+      for (const i of myInterests) {
+        const qKey = `queue:interest:${i.interest.name.toLowerCase()}`;
+        await redis.lrem(qKey, 0, uid);
+        await redis.del(`${qKey}:user:${uid}`);
+      }
     }
 
+    // Clean up pending matches for both users and guests
     await redis.del(PENDING(uid));
+    await redis.del(GUEST_PENDING(uid));
+    
     console.log(`Cleaned up ${uid} from all queues/pending`);
   } catch (err) {
     console.error("Cleanup failed:", err);

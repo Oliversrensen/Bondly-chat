@@ -93,31 +93,21 @@ export default function GuestChatPage() {
     }
   }, [messageCount, showUpgradePrompt]);
 
-  // Re-identify when guestId becomes available
-  useEffect(() => {
-    if (guestId && socketRef.current?.connected) {
-      console.log("Re-identifying with guestId:", guestId);
-      socketRef.current.emit("identify", { 
-        userId: guestId,
-        isGuest: true 
-      });
-    }
-  }, [guestId]);
 
-  // Initialize WebSocket connection
+  // Initialize WebSocket connection only after guestId is available
   useEffect(() => {
+    if (!guestId) return; // Don't connect until we have a guestId
+    
     const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080');
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("Guest WebSocket connected");
+      console.log("Guest WebSocket connected with guestId:", guestId);
       // Identify as guest user using the session guest ID
-      if (guestId) {
-        socket.emit("identify", { 
-          userId: guestId,
-          isGuest: true 
-        });
-      }
+      socket.emit("identify", { 
+        userId: guestId,
+        isGuest: true 
+      });
     });
 
     socket.on("message", (data: ChatMessage) => {
@@ -155,7 +145,7 @@ export default function GuestChatPage() {
       }
       socket.disconnect();
     };
-  }, [roomId, addToast]);
+  }, [guestId, roomId, addToast]);
 
   function scrollToBottom() {
     if (!scrollRef.current) return;
