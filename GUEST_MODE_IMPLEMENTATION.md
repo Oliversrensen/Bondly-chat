@@ -58,13 +58,14 @@ Guest mode has been successfully implemented to reduce bounce rate by allowing u
 ## Expected Impact on Bounce Rate
 
 ### Before: 76% bounce rate
-### After: Expected 45-55% bounce rate
+### After: Expected 35-45% bounce rate (improved with cross-matching)
 
 ### Reasons for Improvement:
 1. **Removed Authentication Friction** - Users can try immediately
 2. **Faster Matching** - 45-second timeout vs 2 minutes
-3. **Clear Value Proposition** - Users experience the product before committing
-4. **Progressive Enhancement** - Natural upgrade path to full features
+3. **Cross-Matching** - Larger pool reduces wait times significantly
+4. **Clear Value Proposition** - Users experience the product before committing
+5. **Progressive Enhancement** - Natural upgrade path to full features
 
 ## Guest Mode Limitations
 
@@ -75,6 +76,12 @@ Guest mode has been successfully implemented to reduce bounce rate by allowing u
 - ✅ No friend requests
 - ✅ No profile customization
 - ✅ No interest-based matching
+
+### Cross-Matching Features:
+- ✅ Guests can match with real users
+- ✅ Real users can match with guests
+- ✅ Mixed chat sessions supported
+- ✅ Faster matching due to larger pool
 
 ### Full Features Available After Signup:
 - ✅ Unlimited session time

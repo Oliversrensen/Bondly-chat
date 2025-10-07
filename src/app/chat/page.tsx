@@ -47,6 +47,7 @@ export default function ChatPage() {
   const [showLeaveNotification, setShowLeaveNotification] = useState(false);
   const [wasTypingWhenLeft, setWasTypingWhenLeft] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
+  const [isPartnerGuest, setIsPartnerGuest] = useState(false);
 
   const [genderFilter, setGenderFilter] = useState<"MALE" | "FEMALE" | null>(
     null
@@ -452,6 +453,7 @@ export default function ChatPage() {
             clearQueueTimeout();
             setPartnerName(data.partnerName ?? null);
             setPartnerId(data.partnerId ?? null);
+            setIsPartnerGuest(data.isGuest || false);
             setStatus(
               `Matched with ${data.partnerName ?? "Anonymous"}, say hi!`
             );

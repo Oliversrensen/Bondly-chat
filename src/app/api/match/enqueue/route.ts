@@ -13,6 +13,11 @@ const PENDING = (u: string) => `match:pending:${u}`;
 const PRESENCE = (u: string) => `presence:${u}`;
 const QUEUE_TTL = 180; // 3 minutes
 
+// Guest queue constants for cross-matching
+const GUEST_PRESENCE = (guestId: string) => `guest:presence:${guestId}`;
+const GUEST_PENDING = (guestId: string) => `guest:match:pending:${guestId}`;
+const GUEST_QUEUE_TTL = 300; // 5 minutes for guest queue
+
 // Normalize DB gender → "MALE" | "FEMALE" | "UNDISCLOSED"
 function normalizeGender(
   g: string | null | undefined,
@@ -32,16 +37,24 @@ function normalizeFilter(
   return "ANY";
 }
 
-// Notify both users of the match
-async function notifyPair(uidA: string, uidB: string, roomId: string) {
+// Notify both users of the match (handles guest + real user combinations)
+async function notifyPair(uidA: string, uidB: string, roomId: string, isGuestA: boolean = false, isGuestB: boolean = false) {
   // Notifying pair of match
   try {
-    await redis.set(PENDING(uidA), roomId, "EX", 120);
+    if (isGuestA) {
+      await redis.set(GUEST_PENDING(uidA), roomId, "EX", 120);
+    } else {
+      await redis.set(PENDING(uidA), roomId, "EX", 120);
+    }
   } catch (err) {
     console.error("Failed to set pending for", uidA, err);
   }
   try {
-    await redis.set(PENDING(uidB), roomId, "EX", 120);
+    if (isGuestB) {
+      await redis.set(GUEST_PENDING(uidB), roomId, "EX", 120);
+    } else {
+      await redis.set(PENDING(uidB), roomId, "EX", 120);
+    }
   } catch (err) {
     console.error("Failed to set pending for", uidB, err);
   }
@@ -76,7 +89,13 @@ export async function POST(req: NextRequest) {
   // RANDOM MODE
   // -------------------
   if (mode === "random") {
-    for (let i = 0; i < 50; i++) {
+    let matchFound = false;
+    let roomId = "";
+    let partnerName = "Anonymous";
+    let partnerId = "";
+
+    // First, try to find another real user
+    for (let i = 0; i < 30; i++) {
       const other = await redis.lpop("queue:random");
       if (!other) break;
 
@@ -98,38 +117,84 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      // Candidate info from DB
-      const otherUser = await prisma.user.findUnique({
-        where: { id: other },
-        select: { gender: true, sillyName: true, isPro: true },
-      });
-      if (!otherUser) continue;
+      // Check if this is a guest user (starts with "guest_")
+      const isGuest = other.startsWith("guest_");
+      
+      if (isGuest) {
+        // It's a guest user - match with them
+        roomId = `mixed_${randomUUID().slice(0, 12)}`;
+        partnerName = "Anonymous Guest";
+        partnerId = other;
+        await notifyPair(uid, other, roomId, false, true);
+        matchFound = true;
+        break;
+      } else {
+        // It's a real user - get their info from DB
+        const otherUser = await prisma.user.findUnique({
+          where: { id: other },
+          select: { gender: true, sillyName: true, isPro: true },
+        });
+        if (!otherUser) continue;
 
-      const otherGender = normalizeGender(otherUser.gender);
+        const otherGender = normalizeGender(otherUser.gender);
 
-      // My filter check
-      if (myFilter !== "ANY" && otherGender !== myFilter) {
-        await redis.rpush("queue:random", other);
-        continue;
+        // My filter check
+        if (myFilter !== "ANY" && otherGender !== myFilter) {
+          await redis.rpush("queue:random", other);
+          continue;
+        }
+
+        // Their filter check (only if they are Pro)
+        if (otherUser.isPro && myGender !== "UNDISCLOSED") {
+          // If they had set a filter, we'd check here — simplified since we dropped pref cache
+        }
+
+        // ✅ Real user match!
+        roomId = randomUUID().slice(0, 12);
+        await prisma.match.create({
+          data: { initiatorId: uid, joinerId: other, mode, roomId },
+        });
+        await notifyPair(uid, other, roomId, false, false);
+        
+        partnerName = otherUser.sillyName ?? "Anonymous";
+        partnerId = other;
+        matchFound = true;
+        break;
       }
+    }
 
-      // Their filter check (only if they are Pro)
-      if (otherUser.isPro && myGender !== "UNDISCLOSED") {
-        // If they had set a filter, we’d check here — simplified since we dropped pref cache
+    // If no real user match found, try to find a guest
+    if (!matchFound) {
+      for (let i = 0; i < 10; i++) {
+        const otherGuest = await redis.lpop("queue:guest");
+        if (!otherGuest) break;
+
+        // Check if the guest is still alive
+        const alive = await redis.exists(`queue:guest:${otherGuest}`);
+        if (!alive) continue;
+
+        // Check if guest is still online
+        const result = await redis.pipeline().exists(GUEST_PRESENCE(otherGuest)).exec();
+        const live = result?.[0]?.[1];
+        if (live !== 1) continue;
+
+        // Found a guest match!
+        roomId = `mixed_${randomUUID().slice(0, 12)}`;
+        partnerName = "Anonymous Guest";
+        partnerId = otherGuest;
+        await notifyPair(uid, otherGuest, roomId, false, true);
+        matchFound = true;
+        break;
       }
+    }
 
-      // ✅ Match!
-      const roomId = randomUUID().slice(0, 12);
-      await prisma.match.create({
-        data: { initiatorId: uid, joinerId: other, mode, roomId },
-      });
-      await notifyPair(uid, other, roomId);
-
+    if (matchFound) {
       return NextResponse.json({
         queued: false,
         roomId,
-        partnerName: otherUser.sillyName ?? "Anonymous",
-        partnerId: other,
+        partnerName,
+        partnerId,
+        isGuest: partnerName.includes("Guest")
       });
     }
 

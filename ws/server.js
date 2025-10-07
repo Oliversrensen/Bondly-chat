@@ -293,6 +293,13 @@ io.on("connection", (socket) => {
     }
     socketRooms.get(socket.id).add(roomId);
     
+    // Emit room joined event to other users in the room
+    socket.to(roomId).emit("user_joined", {
+      userId: socketUsers.get(socket.id),
+      roomId: roomId,
+      timestamp: Date.now()
+    });
+    
     // Socket joined room
   });
 
@@ -320,8 +327,8 @@ io.on("connection", (socket) => {
       isGuest: true
     };
 
-    // Emit to room
-    socket.to(roomId).emit("message", messageData);
+    // Emit to room (including the sender for consistency)
+    io.to(roomId).emit("message", messageData);
     
     // Track metrics
     messageCount++;

@@ -27,6 +27,7 @@ export default function GuestChatPage() {
   const [chatEnded, setChatEnded] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
+  const [isPartnerRealUser, setIsPartnerRealUser] = useState(false);
   const [sessionTimeLeft, setSessionTimeLeft] = useState(30 * 60); // 30 minutes in seconds
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
@@ -186,13 +187,16 @@ export default function GuestChatPage() {
       if (data.roomId) {
         // Found a match immediately
         setPartnerId(data.partnerId);
+        setIsPartnerRealUser(data.isRealUser || false);
         setStatus(`Matched! Say hi to your new chat partner`);
         setRoomId(data.roomId);
         clearQueueTimeout();
         addToast({
           type: 'success',
           title: 'Match Found!',
-          message: 'You\'ve been matched with someone',
+          message: data.isRealUser 
+            ? 'You\'ve been matched with a registered user' 
+            : 'You\'ve been matched with someone',
           duration: 3000
         });
       } else if (data.queued) {
@@ -209,13 +213,16 @@ export default function GuestChatPage() {
           if (matchData.roomId) {
             clearQueueTimeout();
             setPartnerId(matchData.partnerId);
+            setIsPartnerRealUser(matchData.isRealUser || false);
             setStatus(`Matched! Say hi to your new chat partner`);
             setRoomId(matchData.roomId);
             stopPolling();
             addToast({
               type: 'success',
               title: 'Match Found!',
-              message: 'You\'ve been matched with someone',
+              message: matchData.isRealUser 
+                ? 'You\'ve been matched with a registered user' 
+                : 'You\'ve been matched with someone',
               duration: 3000
             });
           }
@@ -418,10 +425,17 @@ export default function GuestChatPage() {
                     <span className="text-white font-bold text-sm">G</span>
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold">Anonymous Guest</h3>
+                    <h3 className="text-white font-semibold">
+                      {isPartnerRealUser ? 'Registered User' : 'Anonymous Guest'}
+                    </h3>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                       <span className="text-green-400 text-sm">Online</span>
+                      {isPartnerRealUser && (
+                        <span className="text-xs text-blue-400 bg-blue-500/20 px-2 py-1 rounded-full">
+                          Registered
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -458,7 +472,10 @@ export default function GuestChatPage() {
                       <p className={`text-xs text-dark-500 mt-1 ${
                         message.authorId === partnerId ? 'ml-1' : 'mr-1 text-right'
                       }`}>
-                        {message.authorId === partnerId ? 'Anonymous' : 'You'} • {new Date(message.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {message.authorId === partnerId 
+                          ? (isPartnerRealUser ? 'Registered User' : 'Anonymous') 
+                          : 'You'
+                        } • {new Date(message.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
